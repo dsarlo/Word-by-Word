@@ -13,6 +13,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <local:ProgressBarVisibilityConverter x:Key="VisConverter"/>
         </ResourceDictionary>
     </Window.Resources>
 
@@ -39,7 +40,21 @@
                 </Viewbox>
             </Button>
 
-            <ListBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectionChanged="ListBox_SelectionChanged" Padding="5" ItemsSource="{Binding Library}"/>
+            <ListView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <mah:ProgressRing Grid.Column="0" Margin="0 0 10 0" Visibility="{Binding IsBusy, Converter={StaticResource VisConverter}, Mode=OneWay}"/>
+                            <TextBlock Grid.Column="1" FontSize="20" VerticalAlignment="Center" Text="{Binding FileName}" Margin="5 0 0 0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </Grid>
     </DockPanel>
 </mah:MetroWindow>
