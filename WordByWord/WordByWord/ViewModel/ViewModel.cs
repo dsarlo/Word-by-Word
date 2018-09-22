@@ -2,37 +2,54 @@
 using System.Collections.Generic;
 using GalaSoft.MvvmLight;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using GalaSoft.MvvmLight.Command;
 using IronOcr;
 using Microsoft.Win32;
+using WordByWord.Models;
 
 namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
-        private ObservableCollection<string> _library = new ObservableCollection<string>();
-        private readonly Dictionary<string, string> _recognizedText = new Dictionary<string, string>();
+        private OcrDocument _selectedDocument;
+        private readonly object _lock = new object();
+        private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
 
         public ViewModel()
         {
+            BindingOperations.EnableCollectionSynchronization(_library, _lock);
+
             CreateAddDocumentContextMenu();
 
-            AddDocumentCommand = new RelayCommand(AddDocument);
+            AddDocumentCommand = new RelayCommand(AddDocumentContext);
         }
 
         #region Properties
 
         public RelayCommand AddDocumentCommand { get; }
 
-        public ObservableCollection<string> Library
+        public ObservableCollection<OcrDocument> Library
         {
             get => _library;
             set { Set(() => Library, ref _library, value); }
+        }
+
+        public OcrDocument SelectedDocument
+        {
+            get => _selectedDocument;
+            set
+            {
+                if (!value.IsBusy)
+                {
+                    Set(() => SelectedDocument, ref _selectedDocument, value);
+                }
+            }
         }
 
         #endregion
@@ -41,7 +58,7 @@ namespace WordByWord.ViewModel
 
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         private async void UploadImage_Click(object sender, RoutedEventArgs e)
@@ -49,18 +66,27 @@ namespace WordByWord.ViewModel
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = true,
-                Filter = "Image files (*.png;*.jpeg)|*.png;*.jpeg",
+                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
+                List<string> filePaths = new List<string>();
                 foreach (string filePath in openFileDialog.FileNames)
                 {
-                    Library.Add(Path.GetFileName(filePath));
+                    if (Library.All(doc => doc.FilePath != filePath))
+                    {
+                        OcrDocument ocrDoc = new OcrDocument(filePath);
+                        Library.Add(ocrDoc);
+                        filePaths.Add(filePath);
+                    }
                 }
 
-                await RunOcrOnFiles(openFileDialog.FileNames);
+                if (filePaths.Count > 0)
+                {
+                    await RunOcrOnFiles(filePaths);
+                }
             }
         }
 
@@ -68,7 +94,19 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
-        private void AddDocument()
+        private async Task RunOcrOnFiles(List<string> filePaths)
+        {
+            await Task.Run(() =>
+            {
+                foreach (string filePath in filePaths)
+                {
+                    string ocrResult = GetTextFromImage(filePath);
+                    Library.Single(doc => doc.FilePath == filePath).OcrText = ocrResult;
+                }
+            });
+        }
+
+        private void AddDocumentContext()
         {
             _addDocumentContext.IsOpen = true;
         }
@@ -76,14 +114,14 @@ namespace WordByWord.ViewModel
         private void CreateAddDocumentContextMenu()
         {
             _addDocumentContext = new ContextMenu();
-            
+
             MenuItem inputText = new MenuItem
             {
-                Header = "Input text"
+                Header = "Input text",
             };
             MenuItem uploadImage = new MenuItem
             {
-                Header = "Upload image..."
+                Header = "Upload image...",
             };
 
             inputText.Click += InputText_Click;
@@ -91,20 +129,6 @@ namespace WordByWord.ViewModel
 
             _addDocumentContext.Items.Add(inputText);
             _addDocumentContext.Items.Add(uploadImage);
-        }
-
-        private async Task RunOcrOnFiles(string[] filePaths)
-        {
-            await Task.Run(() =>
-            {
-                foreach (string filePath in filePaths)
-                {
-                    if (!_recognizedText.ContainsKey(filePath))//TODO Notify of duplicate?
-                    {
-                        _recognizedText.Add(filePath, GetTextFromImage(filePath));
-                    }
-                }
-            });
         }
 
         public string GetTextFromImage(string filePath)
@@ -123,8 +147,7 @@ namespace WordByWord.ViewModel
                 ColorDepth = 4
             };
 
-            OcrResult results = ocr.Read(filePath);
-            return results.Text;
+            return ocr.Read(filePath).Text;
         }
 
         #endregion
