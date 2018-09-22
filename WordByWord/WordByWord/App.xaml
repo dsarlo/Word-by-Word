@@ -4,6 +4,8 @@
              xmlns:local="clr-namespace:WordByWord"
              StartupUri="Library.xaml">
     <Application.Resources>
-         
+        <Style x:Key="Lobster">
+            <Setter Property="TextElement.FontFamily" Value="/Fonts/#Lobster" />
+        </Style>
     </Application.Resources>
 </Application>

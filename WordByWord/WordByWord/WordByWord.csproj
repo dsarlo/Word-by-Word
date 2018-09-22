@@ -68,6 +68,7 @@
     <Compile Include="Reader.xaml.cs">
       <DependentUpon>Reader.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModel\ViewModel.cs" />
     <Page Include="Library.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -115,8 +116,6 @@
   <ItemGroup>
     <Resource Include="Resources\frequency_dictionary_en_82_765.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ViewModel\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
