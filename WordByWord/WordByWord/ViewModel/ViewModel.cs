@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using GalaSoft.MvvmLight.Command;
 using IronOcr;
 using Microsoft.Win32;
+using GalaSoft.MvvmLight.Messaging;
 
 namespace WordByWord.ViewModel
 {
@@ -41,7 +42,7 @@ namespace WordByWord.ViewModel
 
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            Messenger.Default.Send(new NotificationMessage("ShowTextInputWindow"));
         }
 
         private async void UploadImage_Click(object sender, RoutedEventArgs e)
