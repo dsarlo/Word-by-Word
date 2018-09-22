@@ -95,7 +95,8 @@
                 Margin="0 5 10 0"
                 HorizontalAlignment="Right" 
                 VerticalAlignment="Top"
-                BorderThickness="0">
+                BorderThickness="0"
+                    Command="{Binding OpenEditorCommand}">
                 <Rectangle Width="30"
                            Height="30"
                            Margin="0 0 5 0"
@@ -141,10 +142,13 @@
 
         <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Panel.ZIndex="2" Name="BottomMenu" Orientation="Vertical" Width="400" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-100">
             <Grid>
-                <Button Name="BtnBottomMenuHide" Style="{StaticResource AccentedSquareButtonStyle}" Panel.ZIndex="2" Width="130" Height="28" Click="BtnBottomMenuHide_Click"  Content="Close Reader Settings" Visibility="Hidden"/>
-                <Button Name="BtnBottomMenuShow" Style="{StaticResource AccentedSquareButtonStyle}" Panel.ZIndex="2" Width="130" Height="28" Click="BtnBottomMenuShow_Click" Content="Open Reader Settings"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="10"/>
+                </Grid.RowDefinitions>
+                <Button Name="BtnBottomMenuHide" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuHide_Click"/>
+                <Button Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
             </Grid>
-            <Border BorderBrush="#AF1719" BorderThickness="1" Height="100" Background="#4C808080" >
+            <Border BorderBrush="#4C808080" BorderThickness="1" Height="100" Background="#4C808080" >
                 <mah:MetroTabControl x:Name="TabControl"
                                      Grid.Row="1" 
                                      Grid.ColumnSpan="3">

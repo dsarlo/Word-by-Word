@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using MahApps.Metro.Controls;
+﻿using MahApps.Metro.Controls;
 
 namespace WordByWord
 {
@@ -8,14 +7,12 @@ namespace WordByWord
     /// </summary>
     public partial class Editor : MetroWindow
     {
-        public Editor()
+        public Editor(ViewModel.ViewModel viewModel, string documentText)
         {
             InitializeComponent();
-        }
 
-        private void editorConfirm_Click(object sender, RoutedEventArgs e)
-        {
-
+            DataContext = viewModel;
+            viewModel.EditorText = documentText;
         }
     }
 }

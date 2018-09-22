@@ -10,20 +10,29 @@ namespace WordByWord
     /// </summary>
     public partial class Library : MetroWindow
     {
+        private readonly ViewModel.ViewModel _viewModel;
         public Library()
         {
             InitializeComponent();
 
-            ViewModel.ViewModel viewModel = new ViewModel.ViewModel();
-            DataContext = viewModel;
+            _viewModel = new ViewModel.ViewModel();
+            DataContext = _viewModel;
         }
 
         private void NotificationMessageReceived(NotificationMessage message)
         {
-            if (message.Notification == "ShowTextInputWindow")
+            switch (message.Notification)
             {
-                // TODO: Create the window for text input
-                throw new NotImplementedException();
+                case "ShowReaderWindow":
+                    new Reader(_viewModel).Show();
+                    break;
+                case "ShowEditorWindow":
+                    new Editor(_viewModel, _viewModel.SelectedDocument.OcrText).Show();
+                    break;
+                case "ShowTextInputWindow":
+                    // TODO: Create the window for text input
+                    throw new NotImplementedException();
+                    break;
             }
         }
     }

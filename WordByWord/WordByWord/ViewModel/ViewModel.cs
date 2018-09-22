@@ -17,6 +17,7 @@ namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
+        private string _editorText = string.Empty;
         private OcrDocument _selectedDocument;
         private readonly object _lock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
@@ -29,9 +30,15 @@ namespace WordByWord.ViewModel
             CreateAddDocumentContextMenu();
 
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
+            OpenEditorCommand = new RelayCommand(OpenEditorWindow);
+            ConfirmEditCommand = new RelayCommand(ConfirmEdit);
         }
 
         #region Properties
+
+        public RelayCommand ConfirmEditCommand { get; }
+
+        public RelayCommand OpenEditorCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
 
@@ -48,8 +55,20 @@ namespace WordByWord.ViewModel
             {
                 if (!value.IsBusy)
                 {
-                    Set(() => SelectedDocument, ref _selectedDocument, value);
+                    if (Set(() => SelectedDocument, ref _selectedDocument, value))
+                    {
+                        OpenReaderWindow();
+                    }
                 }
+            }
+        }
+
+        public string EditorText
+        {
+            get => _editorText;
+            set
+            {
+                Set(() => EditorText, ref _editorText, value);
             }
         }
 
@@ -105,6 +124,24 @@ namespace WordByWord.ViewModel
                     Library.Single(doc => doc.FilePath == filePath).OcrText = ocrResult;
                 }
             });
+        }
+
+        private void ConfirmEdit()
+        {
+            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
+            //TODO: Close editor window
+        }
+
+        private void OpenReaderWindow()
+        {
+            new Reader(this).Show();
+            //Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
+        }
+
+        private void OpenEditorWindow()
+        {
+            new Editor(this, SelectedDocument.OcrText).Show();
+            //Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
         }
 
         private void AddDocumentContext()

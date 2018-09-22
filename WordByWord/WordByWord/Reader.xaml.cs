@@ -9,9 +9,11 @@ namespace WordByWord
     /// </summary>
     public partial class Reader : MetroWindow
     {
-        public Reader()
+        public Reader(ViewModel.ViewModel viewModel)
         {
             InitializeComponent();
+
+            DataContext = viewModel;
         }
 
         private void ShowHideMenu(string Storyboard, Button btnHide, Button btnShow, StackPanel pnl)
