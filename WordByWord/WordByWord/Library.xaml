@@ -17,28 +17,27 @@
     </Window.Resources>
 
     <DockPanel>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="5*" />
+            </Grid.RowDefinitions>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="5*" />
-                </Grid.RowDefinitions>
+            <TextBlock Text="Library" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center" Grid.ColumnSpan="6"/>
 
-                <TextBlock Text="Library" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center" Grid.ColumnSpan="6"/>
-
-                <Button x:Name="AddButton" Grid.Column="2" Grid.Row="0" FontSize="70" Command="{Binding AddDocumentCommand}" HorizontalAlignment="Right" Margin="0 0 15 0" FontFamily="Global User Interface" Height="76" Width="76" Style="{DynamicResource MetroCircleButtonStyle}">
-                    <Viewbox>
-                        <Canvas x:Name="appbar_add" Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
-                            <Path Width="38" Height="38" Canvas.Left="19" Canvas.Top="19" Stretch="Fill" Fill="#FF000000" Data="F1 M 35,19L 41,19L 41,35L 57,35L 57,41L 41,41L 41,57L 35,57L 35,41L 19,41L 19,35L 35,35L 35,19 Z "/>
-                        </Canvas>
-                    </Viewbox>
-                </Button>
+            <Button x:Name="AddButton" Grid.Column="2" Grid.Row="0" FontSize="70" Command="{Binding AddDocumentCommand}" HorizontalAlignment="Right" Margin="0 0 15 0" FontFamily="Global User Interface" Height="76" Width="76" BorderThickness="0" Style="{DynamicResource MetroCircleButtonStyle}">
+                <Viewbox>
+                    <Canvas x:Name="AddPageCanvas" Width="76" Height="76" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0">
+                        <Path Width="36" Height="42" Canvas.Left="20" Canvas.Top="17" Stretch="Fill" Fill="#FF000000" Data="F1 M 43,30L 50.75,30L 43,22.25L 43,30 Z M 52,34L 39,34L 39,21L 24,21L 24,45L 20,45L 20,17L 43.25,17L 56,29.75L 56,59L 34,59L 34,55L 52,55L 52,34 Z M 28,38L 33,38L 33,46L 41,46L 41,51L 33,51L 33,59L 28,59L 28,51L 20,51L 20,46L 28,46L 28,38 Z M 20,59L 20,52L 24,52L 24,55L 27,55L 27,59L 20,59 Z "/>
+                    </Canvas>
+                </Viewbox>
+            </Button>
 
             <ListBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectionChanged="ListBox_SelectionChanged" Padding="5" ItemsSource="{Binding Library}"/>
         </Grid>
