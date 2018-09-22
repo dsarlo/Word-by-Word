@@ -5,9 +5,19 @@ namespace WordByWord.Test
     [TestClass]
     public class LibraryTests
     {
-        [TestMethod]
-        public void TestMethod1()
+        private static ViewModel.ViewModel _viewModel;
+
+        [ClassInitialize]
+        public static void TestSetup(TestContext testContext)
         {
+            _viewModel = new ViewModel.ViewModel();
+        }
+
+        [TestMethod]
+        public void ImageCharacterRecognitionTest()
+        {
+            string ocrResult = _viewModel.GetTextFromImage(@"TestFiles\LockeEssay.PNG");
+            Assert.IsTrue(ocrResult.Length > 0);
         }
     }
 }
