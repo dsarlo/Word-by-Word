@@ -1,0 +1,32 @@
+﻿<mah:MetroWindow
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        x:Class="WordByWord.InputText"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WordByWord"
+        mc:Ignorable="d"
+        Title="InputText" MinHeight="525" MinWidth="800" Height="525" Width="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="90" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="35" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" >
+            <Label FontSize="28" FontWeight="DemiBold" HorizontalAlignment="Center" Content="Title" />
+            <TextBox FontSize="20" HorizontalAlignment="Center" TextAlignment="Center" MinWidth="275"  />
+        </StackPanel>
+
+        <TextBox Grid.Row="1" FontSize="14" VerticalContentAlignment="Stretch" TextWrapping="Wrap" AcceptsTab="True" VerticalScrollBarVisibility="Auto" Margin="20 0 20 5" AcceptsReturn="True" />
+
+        <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Margin="0 0 20 5" Orientation="Horizontal" HorizontalAlignment="Right" >
+            <Button Padding="-1" Height="30" Width="60" FontSize="16" mah:ControlsHelper.ContentCharacterCasing="Normal" Style="{StaticResource SquareButtonStyle}" Content="Cancel" />
+            <Button Padding="-1" Height="30" Width="60" FontSize="16" mah:ControlsHelper.ContentCharacterCasing="Normal" Style="{StaticResource AccentedSquareButtonStyle}" Margin="8 0 0 0" Content="Save"/>
+        </StackPanel>
+    </Grid>
+
+</mah:MetroWindow>
