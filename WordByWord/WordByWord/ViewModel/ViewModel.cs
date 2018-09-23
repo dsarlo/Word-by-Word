@@ -12,6 +12,7 @@ using IronOcr;
 using Microsoft.Win32;
 using GalaSoft.MvvmLight.Messaging;
 using WordByWord.Models;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace WordByWord.ViewModel
 {
@@ -26,9 +27,13 @@ namespace WordByWord.ViewModel
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
         private bool _isBusy;
+        private IDialogCoordinator _dialogs;
 
-        public ViewModel()
+
+        public ViewModel(IDialogCoordinator instance)
         {
+            _dialogs = instance;
+
             BindingOperations.EnableCollectionSynchronization(_library, _lock);
 
             CreateAddDocumentContextMenu();
@@ -157,21 +162,28 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
-        public void CreateDocFromUserInput()
+        private void CreateDocFromUserInput()
         {
-            OcrDocument newDoc = new OcrDocument()
+            if (Library.All(doc => doc.FileName != UserInputTitle))
             {
-                FilePath = "None",
-                FileName = UserInputTitle,
-                OcrText = UserInputBody
-            };
+                OcrDocument newDoc = new OcrDocument()
+                {
+                    FilePath = UserInputTitle,
+                    FileName = UserInputTitle,
+                    OcrText = UserInputBody
+                };
 
-            Library.Add(newDoc);
+                Library.Add(newDoc);
 
-            UserInputTitle = string.Empty;
-            UserInputBody = string.Empty;
+                UserInputTitle = string.Empty;
+                UserInputBody = string.Empty;
 
-            Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
+                Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
+            }
+            else
+            {
+                _dialogs.ShowModalMessageExternal(this, "Title taken", "Your library already contains another document with that title, please choose another.");
+            }
         }
 
         private void ReadSelectedDocument()
@@ -180,7 +192,7 @@ namespace WordByWord.ViewModel
             ReadSelectedDocumentAsync().GetAwaiter();
         }
 
-        public async Task ReadSelectedDocumentAsync()
+        private async Task ReadSelectedDocumentAsync()
         {
             if (SelectedDocument != null)
             {

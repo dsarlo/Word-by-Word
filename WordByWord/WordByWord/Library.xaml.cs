@@ -1,5 +1,6 @@
 using GalaSoft.MvvmLight.Messaging;
 using MahApps.Metro.Controls;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace WordByWord
 {
@@ -17,7 +18,7 @@ namespace WordByWord
         {
             InitializeComponent();
 
-            _viewModel = new ViewModel.ViewModel();
+            _viewModel = new ViewModel.ViewModel(DialogCoordinator.Instance);
             DataContext = _viewModel;
 
             Messenger.Default.Register<NotificationMessage>(this, NotificationMessageReceived);
