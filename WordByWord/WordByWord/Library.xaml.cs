@@ -1,5 +1,3 @@
-using System;
-using System.Windows.Controls;
 using GalaSoft.MvvmLight.Messaging;
 using MahApps.Metro.Controls;
 
@@ -11,9 +9,9 @@ namespace WordByWord
     public partial class Library : MetroWindow
     {
         private readonly ViewModel.ViewModel _viewModel;
-        Reader _readerTextWindow;
-        Editor _editorTextWindow;
-        InputText _inputTextWindow;
+        private Reader _readerTextWindow;
+        private Editor _editorTextWindow;
+        private InputText _inputTextWindow;
         
         public Library()
         {
@@ -42,22 +40,13 @@ namespace WordByWord
                     _inputTextWindow.Show();
                     break;
                 case "CloseReaderWindow":
-                    if (_readerTextWindow != null)
-                    {
-                        _readerTextWindow.Close();
-                    }
+                    _readerTextWindow?.Close();
                     break;
                 case "CloseEditorWindow":
-                    if (_editorTextWindow != null)
-                    {
-                        _editorTextWindow.Close();
-                    }
+                    _editorTextWindow?.Close();
                     break;
                 case "CloseInputTextWindow":
-                    if (_inputTextWindow != null)
-                    {
-                        _inputTextWindow.Close();
-                    }
+                    _inputTextWindow?.Close();
                     break;
             }
         }

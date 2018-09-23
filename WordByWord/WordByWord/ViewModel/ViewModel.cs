@@ -25,6 +25,7 @@ namespace WordByWord.ViewModel
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
+        private bool _isBusy;
 
         public ViewModel()
         {
@@ -35,7 +36,7 @@ namespace WordByWord.ViewModel
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
-            ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument);
+            ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument, () => !IsBusy);
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
         }
 
@@ -105,6 +106,15 @@ namespace WordByWord.ViewModel
             }
         }
 
+        public bool IsBusy
+        {
+            get => _isBusy;
+            set
+            {
+                Set(() => IsBusy, ref _isBusy, value);
+            }
+        }
+
         #endregion
 
         #region Events
@@ -164,8 +174,9 @@ namespace WordByWord.ViewModel
             Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
         }
 
-        public void ReadSelectedDocument()
+        private void ReadSelectedDocument()
         {
+            IsBusy = true;
             ReadSelectedDocumentAsync().GetAwaiter();
         }
 
@@ -183,6 +194,7 @@ namespace WordByWord.ViewModel
                         await Task.Delay(200);
                     }
                 }
+                IsBusy = false;
             }
         }
 
@@ -201,7 +213,7 @@ namespace WordByWord.ViewModel
         private void ConfirmEdit()
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
-            //TODO: Close editor window
+            Messenger.Default.Send(new NotificationMessage("CloseEditorWindow"));
         }
 
         private void OpenReaderWindow()
