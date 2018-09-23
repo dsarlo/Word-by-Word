@@ -12,6 +12,7 @@ using IronOcr;
 using Microsoft.Win32;
 using GalaSoft.MvvmLight.Messaging;
 using WordByWord.Models;
+using System.Threading;
 
 namespace WordByWord.ViewModel
 {
@@ -22,6 +23,7 @@ namespace WordByWord.ViewModel
         private readonly object _lock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
+        private string _currentWord = string.Empty;
 
         public ViewModel()
         {
@@ -41,6 +43,12 @@ namespace WordByWord.ViewModel
         public RelayCommand OpenEditorCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
+
+        public string CurrentWord
+        {
+            get => _currentWord; 
+            set { Set(() => CurrentWord, ref _currentWord, value); }
+        }
 
         public ObservableCollection<OcrDocument> Library
         {
@@ -62,7 +70,7 @@ namespace WordByWord.ViewModel
                 }
             }
         }
-
+        
         public string EditorText
         {
             get => _editorText;
@@ -110,9 +118,26 @@ namespace WordByWord.ViewModel
             }
         }
 
-        #endregion 
+        #endregion
 
         #region Methods
+
+        public async Task ReadSelectedDocument()
+        {
+            if (SelectedDocument != null)
+            {
+                string[] words = SelectedDocument.OcrText.Replace("\r\n", " ").Split(' ');
+
+                foreach (string word in words)
+                {
+                    if (!string.IsNullOrWhiteSpace(word))
+                    {
+                        CurrentWord = word;
+                        await Task.Delay(170);
+                    }
+                }
+            }
+        }
 
         private async Task RunOcrOnFiles(List<string> filePaths)
         {

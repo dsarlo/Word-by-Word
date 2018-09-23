@@ -49,7 +49,8 @@
         <StackPanel Grid.Column="1"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
-            <Label Content="Lorem ipsum" 
+            <Label x:Name="WordDisplay"  
+                   Content="{Binding CurrentWord}" 
                    FontSize="50"
                    Margin="0 50 0 0"
                    HorizontalAlignment="Center"
@@ -66,7 +67,7 @@
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Button>
-                <Button Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
+                <Button x:Name="PlayButton" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
                     <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
