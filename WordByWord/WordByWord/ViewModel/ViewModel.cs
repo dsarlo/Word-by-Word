@@ -12,7 +12,6 @@ using IronOcr;
 using Microsoft.Win32;
 using GalaSoft.MvvmLight.Messaging;
 using WordByWord.Models;
-using System.Threading;
 
 namespace WordByWord.ViewModel
 {
@@ -24,6 +23,8 @@ namespace WordByWord.ViewModel
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
         private string _currentWord = string.Empty;
+        private string _userInputTitle = string.Empty;
+        private string _userInputBody = string.Empty;
 
         public ViewModel()
         {
@@ -34,15 +35,39 @@ namespace WordByWord.ViewModel
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
+            ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument);
+            CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
         }
 
         #region Properties
+
+        public RelayCommand CreateDocFromUserInputCommand { get; }
+
+        public RelayCommand ReadSelectedDocumentCommand { get; }
 
         public RelayCommand ConfirmEditCommand { get; }
 
         public RelayCommand OpenEditorCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
+
+        public string UserInputTitle
+        {
+            get => _userInputTitle;
+            set
+            {
+                Set(() => UserInputTitle, ref _userInputTitle, value);
+            }
+        }
+
+        public string UserInputBody
+        {
+            get => _userInputBody;
+            set
+            {
+                Set(() => UserInputBody, ref _userInputBody, value);
+            }
+        }
 
         public string CurrentWord
         {
@@ -122,7 +147,29 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
-        public async Task ReadSelectedDocument()
+        public void CreateDocFromUserInput()
+        {
+            OcrDocument newDoc = new OcrDocument()
+            {
+                FilePath = "None",
+                FileName = UserInputTitle,
+                OcrText = UserInputBody
+            };
+
+            Library.Add(newDoc);
+
+            UserInputTitle = string.Empty;
+            UserInputBody = string.Empty;
+
+            Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
+        }
+
+        public void ReadSelectedDocument()
+        {
+            ReadSelectedDocumentAsync().GetAwaiter();
+        }
+
+        public async Task ReadSelectedDocumentAsync()
         {
             if (SelectedDocument != null)
             {
@@ -133,7 +180,7 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay(170);
+                        await Task.Delay(200);
                     }
                 }
             }
@@ -159,14 +206,12 @@ namespace WordByWord.ViewModel
 
         private void OpenReaderWindow()
         {
-            new Reader(this).Show();
-            //Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
+            Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
         }
 
         private void OpenEditorWindow()
         {
-            new Editor(this, SelectedDocument.OcrText).Show();
-            //Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
+            Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
         }
 
         private void AddDocumentContext()

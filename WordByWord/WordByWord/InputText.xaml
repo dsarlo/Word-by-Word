@@ -18,14 +18,13 @@
 
         <StackPanel Grid.Row="0" >
             <Label FontSize="28" FontWeight="DemiBold" HorizontalAlignment="Center" Content="Title" />
-            <TextBox FontSize="20" HorizontalAlignment="Center" TextAlignment="Center" MinWidth="275"  />
+            <TextBox Text="{Binding UserInputTitle}" FontSize="20" HorizontalAlignment="Center" TextAlignment="Center" MinWidth="275"  />
         </StackPanel>
 
-        <TextBox Grid.Row="1" FontSize="14" VerticalContentAlignment="Stretch" TextWrapping="Wrap" AcceptsTab="True" VerticalScrollBarVisibility="Auto" Margin="20 0 20 5" AcceptsReturn="True" />
+        <TextBox Text="{Binding UserInputBody}" Grid.Row="1" FontSize="14" VerticalContentAlignment="Stretch" TextWrapping="Wrap" AcceptsTab="True" VerticalScrollBarVisibility="Auto" Margin="20 0 20 5" AcceptsReturn="True" />
 
         <StackPanel Grid.Row="2" VerticalAlignment="Bottom" Margin="0 0 20 5" Orientation="Horizontal" HorizontalAlignment="Right" >
-            <Button Padding="-1" Height="30" Width="60" FontSize="16" mah:ControlsHelper.ContentCharacterCasing="Normal" Style="{StaticResource SquareButtonStyle}" Content="Cancel" />
-            <Button Padding="-1" Height="30" Width="60" FontSize="16" mah:ControlsHelper.ContentCharacterCasing="Normal" Style="{StaticResource AccentedSquareButtonStyle}" Margin="8 0 0 0" Content="Save"/>
+            <Button Command="{Binding CreateDocFromUserInputCommand}" Padding="-1" Height="30" Width="60" FontSize="16" mah:ControlsHelper.ContentCharacterCasing="Normal" Style="{StaticResource AccentedSquareButtonStyle}" Margin="8 0 0 0" Content="Save"/>
         </StackPanel>
     </Grid>
 

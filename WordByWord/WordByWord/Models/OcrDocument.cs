@@ -10,6 +10,8 @@ namespace WordByWord.Models
         private bool _isBusy = true;
         private string _fileName;
 
+        public OcrDocument() { }
+
         public OcrDocument(string filePath)
         {
             _filePath = filePath;

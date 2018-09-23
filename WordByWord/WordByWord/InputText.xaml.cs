@@ -20,9 +20,13 @@ namespace WordByWord
     /// </summary>
     public partial class InputText : MetroWindow
     {
-        public InputText()
+        ViewModel.ViewModel _viewModel;
+
+        public InputText(ViewModel.ViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            this.DataContext = _viewModel;
         }
     }
 }

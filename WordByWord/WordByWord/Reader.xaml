@@ -67,7 +67,7 @@
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Button>
-                <Button x:Name="PlayButton" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
+                <Button x:Name="PlayButton" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
                     <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
