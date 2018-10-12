@@ -5,24 +5,17 @@ namespace WordByWord.Models
 {
     public class OcrDocument : ObservableObject
     {
-        private string _filePath;
         private string _ocrText = string.Empty;
         private bool _isBusy = true;
         private string _fileName;
 
-        public OcrDocument() { }
-
         public OcrDocument(string filePath)
         {
-            _filePath = filePath;
+            FilePath = filePath;
             _fileName = Path.GetFileName(filePath);
         }
 
-        public string FilePath
-        {
-            get => _filePath;
-            set { Set(() => FilePath, ref _filePath, value); }
-        }
+        public string FilePath { get; }
 
         public string FileName
         {

@@ -16,17 +16,17 @@ namespace WordByWord
             DataContext = viewModel;
         }
 
-        private void ShowHideMenu(string Storyboard, Button btnHide, Button btnShow, StackPanel pnl)
+        private void ShowHideMenu(string storyboard, Button btnHide, Button btnShow, StackPanel pnl)
         {
-            Storyboard sb = Resources[Storyboard] as Storyboard;
+            Storyboard sb = Resources[storyboard] as Storyboard;
             sb.Begin(pnl);
 
-            if (Storyboard.Contains("Show"))
+            if (storyboard.Contains("Show"))
             {
                 btnHide.Visibility = System.Windows.Visibility.Visible;
                 btnShow.Visibility = System.Windows.Visibility.Hidden;
             }
-            else if (Storyboard.Contains("Hide"))
+            else if (storyboard.Contains("Hide"))
             {
                 btnHide.Visibility = System.Windows.Visibility.Hidden;
                 btnShow.Visibility = System.Windows.Visibility.Visible;

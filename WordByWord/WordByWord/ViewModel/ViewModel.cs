@@ -28,13 +28,13 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
 
-        private readonly IDialogCoordinator _dialogs;
+        private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
 
 
-        public ViewModel(IDialogCoordinator instance, IWindowService windowService)
+        public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
-            _dialogs = instance;
+            _dialogService = dialogService;
             _windowService = windowService;
 
             BindingOperations.EnableCollectionSynchronization(_library, _libraryLock);
@@ -130,7 +130,6 @@ namespace WordByWord.ViewModel
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
             _windowService.ShowWindow("InputText", this);
-            //Messenger.Default.Send(new NotificationMessage("ShowTextInputWindow"));
         }
 
         private async void UploadImage_Click(object sender, RoutedEventArgs e)
@@ -168,25 +167,33 @@ namespace WordByWord.ViewModel
 
         private void CreateDocFromUserInput()
         {
-            if (Library.All(doc => doc.FileName != UserInputTitle))
+            if (!string.IsNullOrEmpty(UserInputTitle))
             {
-                OcrDocument newDoc = new OcrDocument()
+                if (Library.All(doc => doc.FileName != UserInputTitle))
                 {
-                    FilePath = UserInputTitle,
-                    FileName = UserInputTitle,
-                    OcrText = UserInputBody
-                };
+                    OcrDocument newDoc =
+                        new OcrDocument(UserInputTitle) //All OcrDocuments must be created with a filePath!
+                        {
+                            OcrText = UserInputBody
+                        };
 
-                Library.Add(newDoc);
+                    Library.Add(newDoc);
 
-                UserInputTitle = string.Empty;
-                UserInputBody = string.Empty;
+                    UserInputTitle = string.Empty;
+                    UserInputBody = string.Empty;
 
-                //Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
+                    _windowService.CloseWindow("InputText", this);
+                }
+                else
+                {
+                    _dialogService.ShowModalMessageExternal(this, "Title taken",
+                        "Your library already contains another document with that title, please choose another.");
+                }
             }
             else
             {
-                _dialogs.ShowModalMessageExternal(this, "Title taken", "Your library already contains another document with that title, please choose another.");
+                _dialogService.ShowModalMessageExternal(this, "Title missing",
+                    "Please give your new text document a title.");
             }
         }
 
@@ -229,19 +236,18 @@ namespace WordByWord.ViewModel
         private void ConfirmEdit()
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
-            //Messenger.Default.Send(new NotificationMessage("CloseEditorWindow"));
+
+            _windowService.CloseWindow("Editor", this);
         }
 
         private void OpenReaderWindow()
         {
             _windowService.ShowWindow("Reader", this);
-            //Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
         }
 
         private void OpenEditorWindow()
         {
             _windowService.ShowWindow("Editor", this);
-            //Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
         }
 
         private void AddDocumentContext()
