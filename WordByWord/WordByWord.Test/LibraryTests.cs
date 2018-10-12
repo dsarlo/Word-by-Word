@@ -1,4 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using CommonServiceLocator;
+using GalaSoft.MvvmLight.Ioc;
+using MahApps.Metro.Controls.Dialogs;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using WordByWord.Helpers;
 
 namespace WordByWord.Test
 {
@@ -10,7 +14,13 @@ namespace WordByWord.Test
         [ClassInitialize]
         public static void TestSetup(TestContext testContext)
         {
-            _viewModel = new ViewModel.ViewModel();
+            ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
+
+            SimpleIoc.Default.Register<IWindowService, WindowService>();
+            SimpleIoc.Default.Register<IDialogCoordinator, DialogCoordinator>();
+            SimpleIoc.Default.Register<ViewModel.ViewModel>();
+
+            _viewModel = ServiceLocator.Current.GetInstance<ViewModel.ViewModel>();
         }
 
         [TestMethod]

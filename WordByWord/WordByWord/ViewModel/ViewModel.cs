@@ -10,9 +10,9 @@ using System.Windows.Data;
 using GalaSoft.MvvmLight.Command;
 using IronOcr;
 using Microsoft.Win32;
-using GalaSoft.MvvmLight.Messaging;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
+using WordByWord.Helpers;
 
 namespace WordByWord.ViewModel
 {
@@ -20,21 +20,24 @@ namespace WordByWord.ViewModel
     {
         private string _editorText = string.Empty;
         private OcrDocument _selectedDocument;
-        private readonly object _lock = new object();
+        private readonly object _libraryLock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
         private bool _isBusy;
-        private IDialogCoordinator _dialogs;
+
+        private readonly IDialogCoordinator _dialogs;
+        private readonly IWindowService _windowService;
 
 
-        public ViewModel(IDialogCoordinator instance)
+        public ViewModel(IDialogCoordinator instance, IWindowService windowService)
         {
             _dialogs = instance;
+            _windowService = windowService;
 
-            BindingOperations.EnableCollectionSynchronization(_library, _lock);
+            BindingOperations.EnableCollectionSynchronization(_library, _libraryLock);
 
             CreateAddDocumentContextMenu();
 
@@ -126,7 +129,8 @@ namespace WordByWord.ViewModel
 
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
-            Messenger.Default.Send(new NotificationMessage("ShowTextInputWindow"));
+            _windowService.ShowWindow("InputText", this);
+            //Messenger.Default.Send(new NotificationMessage("ShowTextInputWindow"));
         }
 
         private async void UploadImage_Click(object sender, RoutedEventArgs e)
@@ -178,7 +182,7 @@ namespace WordByWord.ViewModel
                 UserInputTitle = string.Empty;
                 UserInputBody = string.Empty;
 
-                Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
+                //Messenger.Default.Send(new NotificationMessage("CloseInputTextWindow"));
             }
             else
             {
@@ -225,17 +229,19 @@ namespace WordByWord.ViewModel
         private void ConfirmEdit()
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
-            Messenger.Default.Send(new NotificationMessage("CloseEditorWindow"));
+            //Messenger.Default.Send(new NotificationMessage("CloseEditorWindow"));
         }
 
         private void OpenReaderWindow()
         {
-            Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
+            _windowService.ShowWindow("Reader", this);
+            //Messenger.Default.Send(new NotificationMessage("ShowReaderWindow"));
         }
 
         private void OpenEditorWindow()
         {
-            Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
+            _windowService.ShowWindow("Editor", this);
+            //Messenger.Default.Send(new NotificationMessage("ShowEditorWindow"));
         }
 
         private void AddDocumentContext()

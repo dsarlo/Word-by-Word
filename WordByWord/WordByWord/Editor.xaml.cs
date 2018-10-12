@@ -7,12 +7,12 @@ namespace WordByWord
     /// </summary>
     public partial class Editor : MetroWindow
     {
-        public Editor(ViewModel.ViewModel viewModel, string documentText)
+        public Editor(ViewModel.ViewModel viewModel)
         {
             InitializeComponent();
 
             DataContext = viewModel;
-            viewModel.EditorText = documentText;
+            viewModel.EditorText = viewModel.SelectedDocument.OcrText;
         }
     }
 }

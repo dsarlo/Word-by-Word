@@ -86,6 +86,8 @@
     <Compile Include="Editor.xaml.cs">
       <DependentUpon>Editor.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\IWindowService.cs" />
+    <Compile Include="Helpers\WindowService.cs" />
     <Compile Include="InputText.xaml.cs">
       <DependentUpon>InputText.xaml</DependentUpon>
     </Compile>
