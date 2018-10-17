@@ -83,6 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\InverseBoolConverter.cs" />
     <Compile Include="Editor.xaml.cs">
       <DependentUpon>Editor.xaml</DependentUpon>
     </Compile>
@@ -91,7 +92,7 @@
       <DependentUpon>InputText.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\OcrDocument.cs" />
-    <Compile Include="ProgressBarVisibilityConverter.cs" />
+    <Compile Include="Converters\ProgressBarVisibilityConverter.cs" />
     <Compile Include="Reader.xaml.cs">
       <DependentUpon>Reader.xaml</DependentUpon>
     </Compile>

@@ -6,6 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WordByWord"
+        xmlns:converters="clr-namespace:WordByWord.Converters"
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         dialog:DialogParticipation.Register="{Binding}"
         mc:Ignorable="d"
@@ -18,12 +19,13 @@
         <Storyboard x:Key="SbHideBottomMenu">
             <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,0,-100" AccelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
     </Window.Resources>
     
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="9*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -51,9 +53,10 @@
         <StackPanel Grid.Column="1"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
-            <Label x:Name="WordDisplay"  
+            
+            <Label x:Name="WordDisplay"
+                   FontSize="{Binding ReaderFontSize}"
                    Content="{Binding CurrentWord}" 
-                   FontSize="50"
                    Margin="0 50 0 0"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
@@ -163,12 +166,14 @@
                                    Content="Slide to adjust the number of words that are shown at once" 
                                    FontSize="13"/>
                             <Slider Width="250"
-                                    Ticks="1, 2, 3, 4, 5"
+                                    Value="{Binding NumberOfGroups}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                                     AutoToolTipPlacement="TopLeft"
                                     TickPlacement="BottomRight"
                                     mah:SliderHelper.EnableMouseWheel="MouseHover"
                                     mah:SliderHelper.ChangeValueBy="LargeChange"
                                     Maximum="5"
+                                    Minimum="1"
                                     IsSnapToTickEnabled="True"/>
                         </StackPanel>
                     </mah:MetroTabItem>

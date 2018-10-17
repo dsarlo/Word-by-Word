@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:WordByWord"
+        xmlns:converters="clr-namespace:WordByWord.Converters"
         mc:Ignorable="d"
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         dialog:DialogParticipation.Register="{Binding}"
@@ -15,7 +16,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <local:ProgressBarVisibilityConverter x:Key="VisConverter"/>
+            <converters:ProgressBarVisibilityConverter x:Key="VisConverter"/>
         </ResourceDictionary>
     </Window.Resources>
 

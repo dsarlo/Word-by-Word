@@ -13,6 +13,7 @@ using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
 using WordByWord.Helpers;
+using System.Text;
 
 namespace WordByWord.ViewModel
 {
@@ -27,6 +28,9 @@ namespace WordByWord.ViewModel
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
         private bool _isBusy;
+        private int _numberOfGroups = 1;
+        private int _readerFontSize = 50;
+        private int _readerDelay = 200;
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
@@ -60,6 +64,56 @@ namespace WordByWord.ViewModel
 
         public RelayCommand AddDocumentCommand { get; }
 
+        public int ReaderDelay
+        {
+            get => _readerDelay;
+            set
+            {
+                Set(() => ReaderDelay, ref _readerDelay, value);
+            }
+        }
+
+        public int ReaderFontSize
+        {
+            get => _readerFontSize;
+            set
+            {
+                Set(() => ReaderFontSize, ref _readerFontSize, value);
+            }
+        }
+
+        public int NumberOfGroups
+        {
+            get => _numberOfGroups;
+            set
+            {
+                Set(() => NumberOfGroups, ref _numberOfGroups, value);
+                switch(value)
+                {
+                    case 1:
+                        ReaderFontSize = 50;
+                        ReaderDelay = 200;
+                        break;
+                    case 2:
+                        ReaderFontSize = 45;
+                        ReaderDelay = 300;
+                        break;
+                    case 3:
+                        ReaderFontSize = 40;
+                        ReaderDelay = 400;
+                        break;
+                    case 4:
+                        ReaderFontSize = 35;
+                        ReaderDelay = 500;
+                        break;
+                    case 5:
+                        ReaderFontSize = 30;
+                        ReaderDelay = 800;
+                        break;
+                }
+            }
+        }
+
         public string UserInputTitle
         {
             get => _userInputTitle;
@@ -80,7 +134,7 @@ namespace WordByWord.ViewModel
 
         public string CurrentWord
         {
-            get => _currentWord; 
+            get => _currentWord;
             set { Set(() => CurrentWord, ref _currentWord, value); }
         }
 
@@ -104,7 +158,7 @@ namespace WordByWord.ViewModel
                 }
             }
         }
-        
+
         public string EditorText
         {
             get => _editorText;
@@ -207,18 +261,36 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                string[] words = SelectedDocument.OcrText.Replace("\r\n", " ").Split(' ');
+                List<string> words = await SplitIntoGroups(SelectedDocument.OcrText, NumberOfGroups);
 
                 foreach (string word in words)
                 {
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay(200);
+                        await Task.Delay(ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
+        }
+
+        private async Task<List<string>> SplitIntoGroups(string sentence, int factor)
+        {
+            List<string> groups = new List<string>();
+
+            await Task.Run(() =>
+            {
+                string[] words = sentence.Replace("\r\n", " ").Split();
+
+                for (int i = 0; i < words.Length; i += factor)
+                {
+                    string group = string.Join(" ", words.Skip(i).Take(factor));
+                    groups.Add(group);
+                }
+            });
+            
+            return groups;
         }
 
         private async Task RunOcrOnFiles(List<string> filePaths)
