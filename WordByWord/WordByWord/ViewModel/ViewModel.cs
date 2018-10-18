@@ -14,6 +14,7 @@ using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
 using WordByWord.Helpers;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WordByWord.ViewModel
 {
@@ -31,7 +32,7 @@ namespace WordByWord.ViewModel
         private bool _sentenceReadingEnabled;
         private int _numberOfGroups = 1;
         private int _readerFontSize = 50;
-        private double _readerDelay = 200;
+        private int _readerDelay = 200;
         private int _numberOfSentences = 0;
 
         private readonly IDialogCoordinator _dialogService;
@@ -66,7 +67,7 @@ namespace WordByWord.ViewModel
 
         public RelayCommand AddDocumentCommand { get; }
 
-        public double ReaderDelay
+        public int ReaderDelay
         {
             get => _readerDelay;
             set
@@ -81,6 +82,15 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfSentences, ref _numberOfSentences, value);
+                switch(value)
+                {
+                    case 1: ReaderFontSize = 30;
+                        break;
+                    case 2: ReaderFontSize = 15;
+                        break;
+                    case 3: ReaderFontSize = 15;
+                        break;
+                }
             }
         }
 
@@ -99,6 +109,7 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
+                CurrentWord = string.Empty;
                 switch(value)
                 {
                     case 1:
@@ -111,11 +122,11 @@ namespace WordByWord.ViewModel
                         break;
                     case 3:
                         ReaderFontSize = 40;
-                        ReaderDelay = 400;
+                        ReaderDelay = 500;
                         break;
                     case 4:
                         ReaderFontSize = 35;
-                        ReaderDelay = 500;
+                        ReaderDelay = 650;
                         break;
                     case 5:
                         ReaderFontSize = 30;
@@ -194,6 +205,11 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => SentenceReadingEnabled, ref _sentenceReadingEnabled, value);
+                CurrentWord = string.Empty;
+                if (value)
+                {
+                    ReaderFontSize = 30;
+                }
             }
         }
 
@@ -306,7 +322,8 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                List<string> sentences = SelectedDocument.OcrText.Replace("\r\n", " ").Split('.').ToList();
+                // Split on regex to preserve chars we split on. 
+                string[] sentences = SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
 
                 foreach (string sentence in sentences)
                 {
@@ -320,13 +337,31 @@ namespace WordByWord.ViewModel
             }
         }
 
-        private double CalcDelay(string word)
+        private double CalcDelay(string words)
         {
-            double delay = word.Length * 0.2;
+            int delay = words.Length * 30;
             return ReaderDelay + delay;
         }
 
-        private async Task<List<string>> SplitIntoGroups(string sentence, int factor)
+        private async Task<string[]> SplitIntoSentences(string text, int numberOfSentences)
+        {
+            List<string> groups = new List<string>();
+
+            await Task.Run(() =>
+            {
+                string[] sentences = Regex.Split(text.Replace("\r\n", " ").Replace("...", "…"), "(?<!(?:Mr|Mr.|Dr|Ms|St|a|p|m|K)\\.)(?<=[\".!;\\?])\\s+", RegexOptions.IgnoreCase).ToArray();
+
+                for (int i = 0; i < sentences.Length; i += numberOfSentences)
+                {
+                    string group = string.Join(" ", text.Skip(i).Take(numberOfSentences));
+                    groups.Add(group);
+                }
+            });
+
+            return groups.ToArray();
+        }
+
+        private async Task<List<string>> SplitIntoGroups(string sentence, int numberOfWords)
         {
             List<string> groups = new List<string>();
 
@@ -334,9 +369,9 @@ namespace WordByWord.ViewModel
             {
                 string[] words = sentence.Replace("\r\n", " ").Split();
 
-                for (int i = 0; i < words.Length; i += factor)
+                for (int i = 0; i < words.Length; i += numberOfWords)
                 {
-                    string group = string.Join(" ", words.Skip(i).Take(factor));
+                    string group = string.Join(" ", words.Skip(i).Take(numberOfWords));
                     groups.Add(group);
                 }
             });
