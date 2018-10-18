@@ -80,7 +80,7 @@ namespace WordByWord.ViewModel
 
         public string CurrentWord
         {
-            get => _currentWord; 
+            get => _currentWord;
             set { Set(() => CurrentWord, ref _currentWord, value); }
         }
 
@@ -95,16 +95,17 @@ namespace WordByWord.ViewModel
             get => _selectedDocument;
             set
             {
-                if (!value.IsBusy)
+                if (value == null)
                 {
-                    if (Set(() => SelectedDocument, ref _selectedDocument, value))
-                    {
-                        OpenReaderWindow();
-                    }
+                    Set(() => SelectedDocument, ref _selectedDocument, null);
+                }
+                else if (!value.IsBusy)
+                {
+                    Set(() => SelectedDocument, ref _selectedDocument, value);
                 }
             }
         }
-        
+
         public string EditorText
         {
             get => _editorText;
@@ -240,7 +241,7 @@ namespace WordByWord.ViewModel
             _windowService.CloseWindow("Editor", this);
         }
 
-        private void OpenReaderWindow()
+        internal void OpenReaderWindow()
         {
             _windowService.ShowWindow("Reader", this);
         }

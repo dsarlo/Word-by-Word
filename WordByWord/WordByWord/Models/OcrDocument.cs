@@ -8,6 +8,7 @@ namespace WordByWord.Models
         private string _ocrText = string.Empty;
         private bool _isBusy = true;
         private string _fileName;
+        private bool _isEditingFileName;
 
         public OcrDocument(string filePath)
         {
@@ -37,6 +38,15 @@ namespace WordByWord.Models
         {
             get => _isBusy;
             set { Set(() => IsBusy, ref _isBusy, value); }
+        }
+
+        public bool IsEditingFileName
+        {
+            get => _isEditingFileName;
+            set
+            {
+                Set(() => IsEditingFileName, ref _isEditingFileName, value);
+            }
         }
     }
 }

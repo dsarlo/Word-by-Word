@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         dialog:DialogParticipation.Register="{Binding}"
-        Title="Library" Height="500" Width="700">
+        Title="Library" Height="500" Width="700" x:Name="LibraryWindow">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -42,7 +42,7 @@
                 </Viewbox>
             </Button>
 
-            <ListView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
+            <ListView x:Name="LibraryListView" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>
@@ -52,23 +52,25 @@
                             </Grid.ColumnDefinitions>
 
                             <mah:ProgressRing Grid.Column="0" Margin="0 0 10 0" Visibility="{Binding IsBusy, Converter={StaticResource VisConverter}, Mode=OneWay}"/>
-                            <TextBlock Grid.Column="1" FontSize="20" VerticalAlignment="Center" Text="{Binding FileName}" Margin="5 0 0 0"/>
+                            <TextBlock Grid.Column="1" FontSize="20" VerticalAlignment="Center" Text="{Binding FileName}" Margin="5 0 0 0" Visibility="Visible"/>
+                            <TextBox Grid.Column="1" FontSize="20" VerticalAlignment="Center" Text="{Binding FileName}" Margin="5 0 0 0" Visibility="{Binding IsEditingFileName, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
 
                 <ListView.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="ContextMenu">
-                            <Setter.Value>
-                                <ContextMenu>
-                                    <MenuItem Header="Edit" />
-                                    <MenuItem Header="Rename"/>
-                                </ContextMenu>
-                            </Setter.Value>
-                        </Setter>
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource MetroListViewItem}">
+                        <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                        <EventSetter Event="KeyDown" Handler="ListViewItem_KeyDown"/>
                     </Style>
                 </ListView.ItemContainerStyle>
+
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Edit" Command="{Binding OpenEditorCommand}"/>
+                        <MenuItem Header="Rename" Click="Rename_Click"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
             </ListView>
         </Grid>
     </DockPanel>

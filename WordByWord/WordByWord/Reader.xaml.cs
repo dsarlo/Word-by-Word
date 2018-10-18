@@ -1,4 +1,5 @@
-﻿using MahApps.Metro.Controls;
+﻿using System.ComponentModel;
+using MahApps.Metro.Controls;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
@@ -9,11 +10,14 @@ namespace WordByWord
     /// </summary>
     public partial class Reader : MetroWindow
     {
+        private readonly ViewModel.ViewModel _viewModel;
+
         public Reader(ViewModel.ViewModel viewModel)
         {
             InitializeComponent();
 
-            DataContext = viewModel;
+            _viewModel = viewModel;
+            DataContext = _viewModel;
         }
 
         private void ShowHideMenu(string storyboard, Button btnHide, Button btnShow, StackPanel pnl)
