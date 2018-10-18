@@ -13,7 +13,6 @@ using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
 using WordByWord.Helpers;
-using System.Text;
 
 namespace WordByWord.ViewModel
 {

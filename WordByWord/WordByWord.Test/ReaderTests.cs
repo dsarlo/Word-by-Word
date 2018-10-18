@@ -2,7 +2,6 @@
 using GalaSoft.MvvmLight.Ioc;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WordByWord.Helpers;
@@ -72,12 +71,6 @@ namespace WordByWord.Test
             List<string> result5 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms5);
 
             CollectionAssert.AreEqual(expected5, result5);
-        }
-
-        [TestMethod]
-        public void Test()
-        {
-
         }
     }
 }
