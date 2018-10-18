@@ -199,7 +199,7 @@
                                               Width="245" 
                                               ToolTip="Enabling this will disable grouped words and speed control."/>
                             <Label HorizontalAlignment="Center" 
-                                   Content="Number of sentences:" 
+                                   Content="Number of sentences:"
                                    FontWeight="DemiBold"
                                    FontSize="13"/>
                             <Slider Width="250"

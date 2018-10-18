@@ -28,9 +28,11 @@ namespace WordByWord.ViewModel
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
         private bool _isBusy;
+        private bool _sentenceReadingEnabled;
         private int _numberOfGroups = 1;
         private int _readerFontSize = 50;
-        private int _readerDelay = 200;
+        private double _readerDelay = 200;
+        private int _numberOfSentences = 0;
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
@@ -64,12 +66,21 @@ namespace WordByWord.ViewModel
 
         public RelayCommand AddDocumentCommand { get; }
 
-        public int ReaderDelay
+        public double ReaderDelay
         {
             get => _readerDelay;
             set
             {
                 Set(() => ReaderDelay, ref _readerDelay, value);
+            }
+        }
+
+        public int NumberOfSentences
+        {
+            get => _numberOfSentences;
+            set
+            {
+                Set(() => NumberOfSentences, ref _numberOfSentences, value);
             }
         }
 
@@ -177,6 +188,15 @@ namespace WordByWord.ViewModel
             }
         }
 
+        public bool SentenceReadingEnabled
+        {
+            get => _sentenceReadingEnabled;
+            set
+            {
+                Set(() => SentenceReadingEnabled, ref _sentenceReadingEnabled, value);
+            }
+        }
+
         #endregion
 
         #region Events
@@ -254,10 +274,17 @@ namespace WordByWord.ViewModel
         private void ReadSelectedDocument()
         {
             IsBusy = true;
-            ReadSelectedDocumentAsync().GetAwaiter();
+            if (!SentenceReadingEnabled)
+            {
+                ReadSelectedDocumentWordsAsync().GetAwaiter();
+            }
+            else
+            {
+                ReadSelectedDocumentSentencesAsync().GetAwaiter();
+            }
         }
 
-        private async Task ReadSelectedDocumentAsync()
+        private async Task ReadSelectedDocumentWordsAsync()
         {
             if (SelectedDocument != null)
             {
@@ -268,11 +295,35 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay(ReaderDelay);
+                        await Task.Delay((int) ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
+        }
+
+        private async Task ReadSelectedDocumentSentencesAsync()
+        {
+            if (SelectedDocument != null)
+            {
+                List<string> sentences = SelectedDocument.OcrText.Replace("\r\n", " ").Split('.').ToList();
+
+                foreach (string sentence in sentences)
+                {
+                    if (!string.IsNullOrWhiteSpace(sentence))
+                    {
+                        CurrentWord = sentence;
+                        await Task.Delay((int) CalcDelay(sentence));
+                    }
+                }
+                IsBusy = false;
+            }
+        }
+
+        private double CalcDelay(string word)
+        {
+            double delay = word.Length * 0.2;
+            return ReaderDelay + delay;
         }
 
         private async Task<List<string>> SplitIntoGroups(string sentence, int factor)
