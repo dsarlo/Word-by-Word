@@ -14,10 +14,10 @@
 
     <Window.Resources>
         <Storyboard x:Key="SbShowBottomMenu" >
-            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,-131" To="0,0,0,-2" SpeedRatio="2.5" DecelerationRatio=".9" Duration="0:0:1" />
+            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,-130" To="0,0,0,0" SpeedRatio="2.5" DecelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
         <Storyboard x:Key="SbHideBottomMenu">
-            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,-2" To="0,0,0,-133" SpeedRatio="2" AccelerationRatio=".9" Duration="0:0:1" />
+            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,0,-130" SpeedRatio="2" AccelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
     </Window.Resources>
@@ -149,6 +149,7 @@
         <!-- Slide up settings panel. Adjust the width as needed. -->
         <StackPanel Width="420"
                     Margin="0,0,0,-130"
+                    Background="White"
                     Grid.Column="0" 
                     Grid.ColumnSpan="3" 
                     Grid.Row="2" 
@@ -162,9 +163,9 @@
                     <RowDefinition Height="10"/>
                 </Grid.RowDefinitions>
                 <Button Background="DarkGray" Name="BtnBottomMenuHide" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuHide_Click"/>
-                <Button Background="DarkGray" Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
+                <Button Background="DarkGray" Foreground="Black" Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
             </Grid>
-            <Border BorderBrush="Black" BorderThickness="2" Height="132" Background="#4C808080" >
+            <Border BorderBrush="#4C808080" BorderThickness="1" Height="130" Background="#4C808080" >
                 <mah:MetroTabControl x:Name="TabControl"
                                      Background="Transparent"
                                      Grid.Row="1" 
