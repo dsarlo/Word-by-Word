@@ -56,13 +56,14 @@
                     HorizontalAlignment="Center">
             
             <Label x:Name="WordDisplay"
+                   Height="80"
                    FontSize="{Binding ReaderFontSize}"
                    Content="{Binding CurrentWord}" 
+                   VerticalContentAlignment="Bottom"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" 
-                        HorizontalAlignment="Center"
-                        Margin="0 10 0 0">
+                        HorizontalAlignment="Center">
                 <Button Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
                     <Rectangle Width="20"
                                Height="20"
