@@ -13,6 +13,9 @@ using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
 using WordByWord.Helpers;
+<<<<<<< HEAD
+=======
+>>>>>>> story-16
 
 namespace WordByWord.ViewModel
 {
@@ -99,11 +102,9 @@ namespace WordByWord.ViewModel
                         break;
                     case 3:
                         ReaderFontSize = 40;
-                        ReaderDelay = 400;
                         break;
                     case 4:
                         ReaderFontSize = 35;
-                        ReaderDelay = 500;
                         break;
                     case 5:
                         ReaderFontSize = 30;
@@ -254,10 +255,8 @@ namespace WordByWord.ViewModel
         private void ReadSelectedDocument()
         {
             IsBusy = true;
-            ReadSelectedDocumentAsync().GetAwaiter();
         }
 
-        private async Task ReadSelectedDocumentAsync()
         {
             if (SelectedDocument != null)
             {
@@ -268,14 +267,12 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay(ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
         }
 
-        private async Task<List<string>> SplitIntoGroups(string sentence, int factor)
         {
             List<string> groups = new List<string>();
 
@@ -283,9 +280,7 @@ namespace WordByWord.ViewModel
             {
                 string[] words = sentence.Replace("\r\n", " ").Split();
 
-                for (int i = 0; i < words.Length; i += factor)
                 {
-                    string group = string.Join(" ", words.Skip(i).Take(factor));
                     groups.Add(group);
                 }
             });

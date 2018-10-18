@@ -19,7 +19,6 @@
         <Storyboard x:Key="SbHideBottomMenu">
             <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,0,-130" SpeedRatio="2" AccelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
-        <converters:InverseBoolConverter x:Key="InverseBool"/>
     </Window.Resources>
     
     <Grid>
@@ -30,7 +29,6 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="1.2*"/>
         </Grid.RowDefinitions>
         
         <Button Style="{DynamicResource MetroCircleButtonStyle}" 
@@ -51,17 +49,7 @@
         </Button>
 
         <StackPanel Grid.Column="1"
-                    Grid.RowSpan="2"
-                    VerticalAlignment="Center"
                     HorizontalAlignment="Center">
-            
-            <Label x:Name="WordDisplay"
-                   Height="80"
-                   FontSize="{Binding ReaderFontSize}"
-                   Content="{Binding CurrentWord}" 
-                   VerticalContentAlignment="Bottom"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" 
                         HorizontalAlignment="Center">
                 <Button Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
@@ -163,7 +151,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="10"/>
                 </Grid.RowDefinitions>
-                <Button Background="DarkGray" Name="BtnBottomMenuHide" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuHide_Click"/>
                 <Button Background="DarkGray" Foreground="Black" Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
             </Grid>
             <Border BorderBrush="#4C808080" BorderThickness="1" Height="130" Background="#4C808080" >
@@ -188,7 +175,6 @@
                                     mah:SliderHelper.ChangeValueBy="LargeChange"
                                     Maximum="5"
                                     Minimum="1"
-                                    IsSnapToTickEnabled="True"/>
                         </StackPanel>
                     </mah:MetroTabItem>
                     <mah:MetroTabItem Header="Sentences" Width="130">
@@ -200,19 +186,16 @@
                                               Width="245" 
                                               ToolTip="Enabling this will disable grouped words and speed control."/>
                             <Label HorizontalAlignment="Center" 
-                                   Content="Number of sentences:" 
                                    FontWeight="DemiBold"
                                    FontSize="13"/>
                             <Slider Width="250"
                                     Value="{Binding NumberOfSentences}"
-                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
                                     AutoToolTipPlacement="TopLeft"
                                     TickPlacement="BottomRight"
                                     mah:SliderHelper.EnableMouseWheel="MouseHover"
                                     mah:SliderHelper.ChangeValueBy="LargeChange"
                                     Maximum="3"
                                     Minimum="1"
-                                    IsSnapToTickEnabled="True"/>
                         </StackPanel>
                     </mah:MetroTabItem>
                 </mah:MetroTabControl>

@@ -35,7 +35,6 @@ namespace WordByWord.Test
             // 1 Word at a time
             int grouping1 = 1;
             object[] parms1 = { testingString, grouping1 };
-            List<string> expected1= new List<string>() { "I", "solemnly", "swear", "I", "am", "up", "to", "no", "good." };
             List<string> result1 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms1);
 
             CollectionAssert.AreEqual(expected1, result1);
@@ -72,5 +71,8 @@ namespace WordByWord.Test
 
             CollectionAssert.AreEqual(expected5, result5);
         }
+<<<<<<< HEAD
+=======
+>>>>>>> story-16
     }
 }
