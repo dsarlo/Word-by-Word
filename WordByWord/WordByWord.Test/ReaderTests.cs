@@ -81,8 +81,6 @@ namespace WordByWord.Test
                 "\r\nI thought not. It's not a story the Jedi would tell you. It's a Sith legend. " +
                 "\r\nDarth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life...";
 
-            string testingString = "I mean, nobody wishes more than I do that it had all been quick and clean, and my head had come off properly, I mean, it would have saved me a great deal of pain and ridicule. However -\" Nearly Headless Nick shook his letter open and read furiously: \"'We can only accept huntsmen whose heads have parted company with their bodies. You will appreciate that it would be impossible otherwise for members to participate in hunt activities such as Horseback Head-Juggling and Head Polo. It is with the greatest regret, therefore, that I must inform you that you do not fulfill our requirements. With very best wishes, Sir Patrick Delaney-Podmore.'";
-
             // 1 Sentence at a time
             int numSentences1 = 1;
             object[] args1 = { testingString, numSentences1 };
