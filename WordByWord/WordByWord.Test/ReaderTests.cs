@@ -35,6 +35,7 @@ namespace WordByWord.Test
             // 1 Word at a time
             int grouping1 = 1;
             object[] parms1 = { testingString, grouping1 };
+            List<string> expected1 = new List<string>() { "I", "solemnly", "swear", "I", "am", "up", "to", "no", "good." };
             List<string> result1 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms1);
 
             CollectionAssert.AreEqual(expected1, result1);
@@ -71,8 +72,43 @@ namespace WordByWord.Test
 
             CollectionAssert.AreEqual(expected5, result5);
         }
-<<<<<<< HEAD
-=======
->>>>>>> story-16
+
+        [TestMethod]
+        public async Task SplitIntoSentences()
+        {
+            string testingString = "Did you ever hear the tragedy of Darth Plagueis the Wise? " +
+                "\r\nI thought not. It's not a story the Jedi would tell you. It's a Sith legend. " +
+                "\r\nDarth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life...";
+
+            // 1 Sentence at a time
+            int numSentences1 = 1;
+            object[] args1 = { testingString, numSentences1 };
+            string[] expected1 = { "Did you ever hear the tragedy of Darth Plagueis the Wise?", "I thought not.",
+                "It's not a story the Jedi would tell you.", "It's a Sith legend.", "Darth Plagueis was a Dark " +
+                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+            string[] result1 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args1);
+
+            CollectionAssert.AreEqual(expected1, result1);
+
+            // 2 Sentences at a time
+            int numSentences2 = 2;
+            object[] args2 = { testingString, numSentences2 };
+            string[] expected2 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not.",
+                "It's not a story the Jedi would tell you. It's a Sith legend.", "Darth Plagueis was a Dark " +
+                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+            string[] result2 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args2);
+
+            CollectionAssert.AreEqual(expected2, result2);
+
+            // 3 Sentences at a time
+            int numSentences3 = 3;
+            object[] args3 = { testingString, numSentences3 };
+            string[] expected3 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not. " +
+                    "It's not a story the Jedi would tell you.", "It's a Sith legend. Darth Plagueis was a Dark " +
+                    "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+            string[] result3 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args3);
+
+            CollectionAssert.AreEqual(expected3, result3);
+        }
     }
 }

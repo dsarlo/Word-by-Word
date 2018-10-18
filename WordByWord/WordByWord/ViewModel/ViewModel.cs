@@ -13,9 +13,8 @@ using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
 using WordByWord.Helpers;
-<<<<<<< HEAD
-=======
->>>>>>> story-16
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WordByWord.ViewModel
 {
@@ -30,9 +29,12 @@ namespace WordByWord.ViewModel
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
         private bool _isBusy;
+        private bool _sentenceReadingEnabled;
         private int _numberOfGroups = 1;
         private int _readerFontSize = 50;
         private int _readerDelay = 200;
+        private int _numberOfSentences = 1;
+        private int _previousGrouping = 1;
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
@@ -75,6 +77,24 @@ namespace WordByWord.ViewModel
             }
         }
 
+        public int NumberOfSentences
+        {
+            get => _numberOfSentences;
+            set
+            {
+                Set(() => NumberOfSentences, ref _numberOfSentences, value);
+                switch(value)
+                {
+                    case 1: ReaderFontSize = 30;
+                        break;
+                    case 2: ReaderFontSize = 20;
+                        break;
+                    case 3: ReaderFontSize = 20;
+                        break;
+                }
+            }
+        }
+
         public int ReaderFontSize
         {
             get => _readerFontSize;
@@ -90,6 +110,7 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
+                CurrentWord = string.Empty;
                 switch(value)
                 {
                     case 1:
@@ -102,9 +123,11 @@ namespace WordByWord.ViewModel
                         break;
                     case 3:
                         ReaderFontSize = 40;
+                        ReaderDelay = 500;
                         break;
                     case 4:
                         ReaderFontSize = 35;
+                        ReaderDelay = 650;
                         break;
                     case 5:
                         ReaderFontSize = 30;
@@ -175,6 +198,25 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => IsBusy, ref _isBusy, value);
+            }
+        }
+
+        public bool SentenceReadingEnabled
+        {
+            get => _sentenceReadingEnabled;
+            set
+            {
+                Set(() => SentenceReadingEnabled, ref _sentenceReadingEnabled, value);
+                CurrentWord = string.Empty;
+                if (value)
+                {
+                    _previousGrouping = NumberOfGroups;
+                    ReaderFontSize = 30;
+                }
+                else
+                {
+                    NumberOfGroups = _previousGrouping;
+                }
             }
         }
 
@@ -255,8 +297,17 @@ namespace WordByWord.ViewModel
         private void ReadSelectedDocument()
         {
             IsBusy = true;
+            if (!SentenceReadingEnabled)
+            {
+                ReadSelectedDocumentWordsAsync().GetAwaiter();
+            }
+            else
+            {
+                ReadSelectedDocumentSentencesAsync().GetAwaiter();
+            }
         }
 
+        private async Task ReadSelectedDocumentWordsAsync()
         {
             if (SelectedDocument != null)
             {
@@ -267,12 +318,57 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
+                        await Task.Delay((int) ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
         }
 
+        private async Task ReadSelectedDocumentSentencesAsync()
+        {
+            if (SelectedDocument != null)
+            {
+                // Split on regex to preserve chars we split on. 
+                string[] sentences = await SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
+
+                foreach (string sentence in sentences)
+                {
+                    if (!string.IsNullOrWhiteSpace(sentence))
+                    {
+                        CurrentWord = sentence;
+                        await Task.Delay((int) CalcDelay(sentence));
+                    }
+                }
+                IsBusy = false;
+            }
+        }
+
+        private double CalcDelay(string words)
+        {
+            int delay = words.Length * 30;
+            return ReaderDelay + delay;
+        }
+
+        private async Task<string[]> SplitIntoSentences(string text, int numberOfSentences)
+        {
+            List<string> groups = new List<string>();
+
+            await Task.Run(() =>
+            {
+                string[] sentences = Regex.Split(text.Replace("\r\n", " ").Replace("...", "…"), "(?<!(?:Mr|Mr.|Dr|Ms|St|a|p|m|K)\\.)(?<=[\".!;\\?])\\s+", RegexOptions.IgnoreCase).ToArray();
+
+                for (int i = 0; i < sentences.Length; i += numberOfSentences)
+                {
+                    string group = string.Join(" ", sentences.Skip(i).Take(numberOfSentences));
+                    groups.Add(group);
+                }
+            });
+
+            return groups.ToArray();
+        }
+
+        private async Task<List<string>> SplitIntoGroups(string sentence, int numberOfWords)
         {
             List<string> groups = new List<string>();
 
@@ -280,7 +376,9 @@ namespace WordByWord.ViewModel
             {
                 string[] words = sentence.Replace("\r\n", " ").Split();
 
+                for (int i = 0; i < words.Length; i += numberOfWords)
                 {
+                    string group = string.Join(" ", words.Skip(i).Take(numberOfWords));
                     groups.Add(group);
                 }
             });
