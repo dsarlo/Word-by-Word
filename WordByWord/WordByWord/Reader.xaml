@@ -6,27 +6,31 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WordByWord"
+        xmlns:converters="clr-namespace:WordByWord.Converters"
+        xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+        dialog:DialogParticipation.Register="{Binding}"
         mc:Ignorable="d"
         Title="Reader" Height="450" Width="800">
 
     <Window.Resources>
         <Storyboard x:Key="SbShowBottomMenu" >
-            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,-100" To="0,0,0,0" DecelerationRatio=".9" Duration="0:0:1" />
+            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,-130" To="0,0,0,0" SpeedRatio="2.5" DecelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
         <Storyboard x:Key="SbHideBottomMenu">
-            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,0,-100" AccelerationRatio=".9" Duration="0:0:1" />
+            <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,0,0,0" To="0,0,0,-130" SpeedRatio="2" AccelerationRatio=".9" Duration="0:0:1" />
         </Storyboard>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
     </Window.Resources>
     
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="9*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="1.2*"/>
         </Grid.RowDefinitions>
         
         <Button Style="{DynamicResource MetroCircleButtonStyle}" 
@@ -47,17 +51,19 @@
         </Button>
 
         <StackPanel Grid.Column="1"
+                    Grid.RowSpan="2"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center">
-            <Label x:Name="WordDisplay"  
+            
+            <Label x:Name="WordDisplay"
+                   Height="80"
+                   FontSize="{Binding ReaderFontSize}"
                    Content="{Binding CurrentWord}" 
-                   FontSize="50"
-                   Margin="0 50 0 0"
+                   VerticalContentAlignment="Bottom"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
             <StackPanel Orientation="Horizontal" 
-                        HorizontalAlignment="Center"
-                        Margin="0 10 0 0">
+                        HorizontalAlignment="Center">
                 <Button Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
                     <Rectangle Width="20"
                                Height="20"
@@ -141,21 +147,74 @@
             </Button>
         </StackPanel>
 
-        <StackPanel Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Panel.ZIndex="2" Name="BottomMenu" Orientation="Vertical" Width="400" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-100">
+        <!-- Slide up settings panel. Adjust the width as needed. -->
+        <StackPanel Width="420"
+                    Margin="0,0,0,-130"
+                    Background="White"
+                    Grid.Column="0" 
+                    Grid.ColumnSpan="3" 
+                    Grid.Row="2" 
+                    Panel.ZIndex="2" 
+                    Name="BottomMenu" 
+                    Orientation="Vertical" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Bottom">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="10"/>
                 </Grid.RowDefinitions>
-                <Button Name="BtnBottomMenuHide" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuHide_Click"/>
-                <Button Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
+                <Button Background="DarkGray" Name="BtnBottomMenuHide" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuHide_Click"/>
+                <Button Background="DarkGray" Foreground="Black" Name="BtnBottomMenuShow" Panel.ZIndex="2" Width="130" Height="10" Click="BtnBottomMenuShow_Click"/>
             </Grid>
-            <Border BorderBrush="#4C808080" BorderThickness="1" Height="100" Background="#4C808080" >
+            <Border BorderBrush="#4C808080" BorderThickness="1" Height="130" Background="#4C808080" >
                 <mah:MetroTabControl x:Name="TabControl"
+                                     Background="Transparent"
                                      Grid.Row="1" 
                                      Grid.ColumnSpan="3">
-                    <mah:MetroTabItem Header="Item 1"/>
-                    <mah:MetroTabItem Header="Item 2"/>
-                    <mah:MetroTabItem Header="Item 3"/>
+                    <mah:MetroTabItem Header="Item 1" Width="85"/>
+                    <mah:MetroTabItem Header="Word Grouping" Width="195">
+                        <StackPanel>
+                            <Label HorizontalAlignment="Center"
+                                   Margin="0 13 0 0"
+                                   FontWeight="DemiBold"
+                                   Content="Number of words displayed at once:" 
+                                   FontSize="13"/>
+                            <Slider Width="250"
+                                    Value="{Binding NumberOfGroups}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                    AutoToolTipPlacement="TopLeft"
+                                    TickPlacement="BottomRight"
+                                    mah:SliderHelper.EnableMouseWheel="MouseHover"
+                                    mah:SliderHelper.ChangeValueBy="LargeChange"
+                                    Maximum="5"
+                                    Minimum="1"
+                                    IsSnapToTickEnabled="True"/>
+                        </StackPanel>
+                    </mah:MetroTabItem>
+                    <mah:MetroTabItem Header="Sentences" Width="130">
+                        <StackPanel>
+                            <mah:ToggleSwitch x:Name="SentenceReadingSwitch" 
+                                              IsChecked="{Binding SentenceReadingEnabled}" 
+                                              Content="Enable Sentence Reading" 
+                                              Margin="0 0 0 -3"
+                                              Width="245" 
+                                              ToolTip="Enabling this will disable grouped words and speed control."/>
+                            <Label HorizontalAlignment="Center" 
+                                   Content="Number of sentences:" 
+                                   FontWeight="DemiBold"
+                                   FontSize="13"/>
+                            <Slider Width="250"
+                                    Value="{Binding NumberOfSentences}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBool}}"
+                                    AutoToolTipPlacement="TopLeft"
+                                    TickPlacement="BottomRight"
+                                    mah:SliderHelper.EnableMouseWheel="MouseHover"
+                                    mah:SliderHelper.ChangeValueBy="LargeChange"
+                                    Maximum="3"
+                                    Minimum="1"
+                                    IsSnapToTickEnabled="True"/>
+                        </StackPanel>
+                    </mah:MetroTabItem>
                 </mah:MetroTabControl>
             </Border>
         </StackPanel>

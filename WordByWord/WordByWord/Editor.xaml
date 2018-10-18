@@ -5,6 +5,8 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                  xmlns:local="clr-namespace:WordByWord"
+                 xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+                 dialog:DialogParticipation.Register="{Binding}"
                  mc:Ignorable="d"
                  Title="Editor" Height="400" Width="400">
     <DockPanel>
