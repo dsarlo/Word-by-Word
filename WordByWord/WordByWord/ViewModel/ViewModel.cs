@@ -33,7 +33,8 @@ namespace WordByWord.ViewModel
         private int _numberOfGroups = 1;
         private int _readerFontSize = 50;
         private int _readerDelay = 200;
-        private int _numberOfSentences = 0;
+        private int _numberOfSentences = 1;
+        private int _previousGrouping = 1;
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
@@ -86,9 +87,9 @@ namespace WordByWord.ViewModel
                 {
                     case 1: ReaderFontSize = 30;
                         break;
-                    case 2: ReaderFontSize = 15;
+                    case 2: ReaderFontSize = 20;
                         break;
-                    case 3: ReaderFontSize = 15;
+                    case 3: ReaderFontSize = 20;
                         break;
                 }
             }
@@ -208,7 +209,12 @@ namespace WordByWord.ViewModel
                 CurrentWord = string.Empty;
                 if (value)
                 {
+                    _previousGrouping = NumberOfGroups;
                     ReaderFontSize = 30;
+                }
+                else
+                {
+                    NumberOfGroups = _previousGrouping;
                 }
             }
         }
@@ -323,7 +329,7 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 // Split on regex to preserve chars we split on. 
-                string[] sentences = SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
+                string[] sentences = await SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
 
                 foreach (string sentence in sentences)
                 {
@@ -353,7 +359,7 @@ namespace WordByWord.ViewModel
 
                 for (int i = 0; i < sentences.Length; i += numberOfSentences)
                 {
-                    string group = string.Join(" ", text.Skip(i).Take(numberOfSentences));
+                    string group = string.Join(" ", sentences.Skip(i).Take(numberOfSentences));
                     groups.Add(group);
                 }
             });
