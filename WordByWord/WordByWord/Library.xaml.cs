@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using CommonServiceLocator;
 using MahApps.Metro.Controls;
+using WordByWord.Models;
 
 namespace WordByWord
 {
@@ -29,14 +30,25 @@ namespace WordByWord
 
         private void Rename_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _viewModel.SelectedDocument.IsEditingFileName = true;
+            if (_viewModel.SelectedDocument != null)
+            {
+                OcrDocument listViewDoc = (OcrDocument) LibraryListView.Items[LibraryListView.SelectedIndex];
+                if (!_viewModel.SelectedDocument.IsBusy && listViewDoc.FilePath == _viewModel.SelectedDocument.FilePath)
+                {
+                    _viewModel.SelectedDocument.IsEditingFileName = true;
+                }
+            }
         }
 
         private void ListViewItem_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter && _viewModel.SelectedDocument.IsEditingFileName)
+            if (_viewModel.SelectedDocument != null)
             {
-                _viewModel.SelectedDocument.IsEditingFileName = false;
+                if (e.Key == Key.Enter && _viewModel.SelectedDocument.IsEditingFileName)
+                {
+                    _viewModel.SelectedDocument.IsEditingFileName = false;
+                    _viewModel.SaveLibrary();
+                }
             }
         }
     }
