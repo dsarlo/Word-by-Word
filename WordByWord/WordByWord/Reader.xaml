@@ -22,18 +22,19 @@
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <converters:MultiBoolAndConverter x:Key="MultiBool" />
     </Window.Resources>
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="9*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="72*"/>
+            <ColumnDefinition Width="450*"/>
+            <ColumnDefinition Width="199*"/>
+            <ColumnDefinition Width="72*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        
+
         <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                 Grid.Column="0" 
                 Width="50" 
@@ -53,7 +54,7 @@
 
         <StackPanel Grid.Column="1"
                     VerticalAlignment="Bottom"
-                    HorizontalAlignment="Center">
+                    HorizontalAlignment="Center" Margin="250,0,51.263,0">
 
             <TextBlock x:Name="WordDisplay"
                        MinHeight="30"
@@ -76,12 +77,21 @@
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Button>
-                <Button x:Name="PlayButton" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
+                <Button x:Name="PlayButton" Click="PlayButton_Click" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black" >
                     <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
                         <Rectangle.OpacityMask>
                             <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_play}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                </Button>
+                <Button x:Name="PauseButton" Click="PauseButton_Click" Command="{Binding PauseReadingCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black" Visibility="Collapsed">
+                    <Rectangle Width="20"
+                               Height="20"
+                               Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_pause}" />
                         </Rectangle.OpacityMask>
                     </Rectangle>
                 </Button>
@@ -97,7 +107,7 @@
             </StackPanel>
         </StackPanel>
 
-        <StackPanel Grid.Column="2">
+        <StackPanel Grid.Column="3" Margin="0.4,0,-0.4,0">
             <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                 Grid.Column="2" 
                 Width="50" 
@@ -152,11 +162,11 @@
 
         <!-- Slide up settings panel. Adjust the width as needed. -->
         <StackPanel Width="420"
-                    Margin="0,0,0,-130"
+                    Margin="115,0,114.6,-130"
                     Background="White"
-                    Grid.Column="0" 
-                    Grid.ColumnSpan="3" 
-                    Grid.Row="2" 
+                    Grid.Column="1" 
+                    Grid.ColumnSpan="2" 
+                    Grid.Row="1" 
                     Panel.ZIndex="2" 
                     Name="BottomMenu" 
                     Orientation="Vertical" 
@@ -198,7 +208,7 @@
                                        FontStyle="Italic"
                                        FontSize="20"/>
                         </StackPanel>
-                    </mah:MetroTabItem>            
+                    </mah:MetroTabItem>
                     <mah:MetroTabItem Header="Grouping" Width="125">
                         <StackPanel>
                             <Label HorizontalAlignment="Center"

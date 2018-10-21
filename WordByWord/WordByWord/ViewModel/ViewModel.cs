@@ -17,6 +17,7 @@ using WordByWord.Services;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Text;
+using System.Threading;
 
 namespace WordByWord.ViewModel
 {
@@ -38,13 +39,15 @@ namespace WordByWord.ViewModel
         private int _readerDelay = 500; // two words per second
         private int _numberOfSentences = 1;
         private int _previousGrouping = 1;
+        private int _pausedWordIndex = 0;
+        private bool _resumeReading = false;
+        private CancellationTokenSource _cSource = new CancellationTokenSource();
 
         private static readonly string SerializedDataFolderPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\word-by-word\";
         private readonly string _serializedLibraryPath = $"{SerializedDataFolderPath}library.json";
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
-
 
         public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
@@ -58,8 +61,20 @@ namespace WordByWord.ViewModel
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
-            ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument, () => !IsBusy);
+            //ReadSelectedDocumentCommand = new RelayCommand(() => ReadSelectedDocument(ctoken), () => !IsBusy);
+            ReadSelectedDocumentCommand = new RelayCommand(async () => 
+            {
+                if (!IsBusy)
+                {
+                    CancellationToken ctoken = _cSource.Token;
+
+                    await ReadSelectedDocument(ctoken);
+                    _cSource.Dispose();
+                    _cSource = new CancellationTokenSource();
+                }                
+            }, true);
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
+            PauseReadingCommand = new RelayCommand(() => _cSource.Cancel());
 
             LoadLibrary();
         }
@@ -75,6 +90,8 @@ namespace WordByWord.ViewModel
         public RelayCommand OpenEditorCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
+
+        public RelayCommand PauseReadingCommand { get; }
 
         public int ReaderDelay
         {
@@ -338,46 +355,61 @@ namespace WordByWord.ViewModel
             }
         }
 
-        private async void ReadSelectedDocument()
+        private async Task ReadSelectedDocument(CancellationToken ctoken)
         {
             IsBusy = true;
             if (!SentenceReadingEnabled)
             {
-                await ReadSelectedDocumentWordsAsync();
+                await ReadSelectedDocumentWordsAsync(ctoken);
             }
             else
             {
-                await ReadSelectedDocumentSentencesAsync();
+                await ReadSelectedDocumentSentencesAsync(ctoken);
             }
         }
 
-        private async Task ReadSelectedDocumentWordsAsync()
+        private async Task ReadSelectedDocumentWordsAsync(CancellationToken ctoken)
         {
             if (SelectedDocument != null)
             {
                 List<string> words = await SplitIntoGroups();
 
-                foreach (string word in words)
+                for (int wordIndex = _resumeReading ? _pausedWordIndex : 0; wordIndex < words.Count; wordIndex++)
                 {
+                    string word = words[wordIndex];
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
                         await Task.Delay(ReaderDelay);
+                    }
+
+                    if (_resumeReading && wordIndex == words.Count-1)
+                    {
+                        _resumeReading = false;
+                        _pausedWordIndex = 0;
+                    }
+
+                    if (ctoken.IsCancellationRequested && wordIndex != words.Count - 1)
+                    {
+                        _pausedWordIndex = wordIndex;
+                        _resumeReading = true;
+                        break;
                     }
                 }
                 IsBusy = false;
             }
         }
 
-        private async Task ReadSelectedDocumentSentencesAsync()
+        private async Task ReadSelectedDocumentSentencesAsync(CancellationToken ctoken)
         {
             if (SelectedDocument != null)
             {
                 // Split on regex to preserve chars we split on. 
                 List<string> sentences = await SplitIntoSentences();
 
-                foreach (string sentence in sentences)
+                for (int sentenceIndex = _resumeReading ? _pausedWordIndex : 0; sentenceIndex < sentences.Count; sentenceIndex++)
                 {
+                    string sentence = sentences[sentenceIndex];
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
                         CurrentWord = sentence;
@@ -385,8 +417,22 @@ namespace WordByWord.ViewModel
                         CalculateRelayDelay(words.Length);
                         await Task.Delay(ReaderDelay);
                     }
+
+                    if (_resumeReading && sentenceIndex == sentences.Count - 1)
+                    {
+                        _resumeReading = false;
+                        _pausedWordIndex = 0;
+                    }
+
+                    if (ctoken.IsCancellationRequested && sentenceIndex != sentences.Count - 1)
+                    {
+                        _pausedWordIndex = sentenceIndex;
+                        _resumeReading = true;
+                        break;
+                    }
                 }
                 IsBusy = false;
+
             }
         }
 
