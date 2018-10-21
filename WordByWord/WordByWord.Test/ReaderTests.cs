@@ -4,6 +4,7 @@ using MahApps.Metro.Controls.Dialogs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using WordByWord.Models;
 using WordByWord.Services;
 
 namespace WordByWord.Test
@@ -12,7 +13,6 @@ namespace WordByWord.Test
     public class ReaderTests
     {
         private static ViewModel.ViewModel _viewModel;
-        private static PrivateObject _viewModelPrivate;
 
         [ClassInitialize]
         public static void TestSetup(TestContext testContext)
@@ -24,51 +24,49 @@ namespace WordByWord.Test
             SimpleIoc.Default.Register<ViewModel.ViewModel>();
 
             _viewModel = ServiceLocator.Current.GetInstance<ViewModel.ViewModel>();
-            _viewModelPrivate = new PrivateObject(_viewModel);
         }
 
         [TestMethod]
-        public async Task GroupByFactor()
+        public async Task SplitIntoGroups()
         {
-            string testingString = "I solemnly swear\r\nI am up to no good.";
-            
+            OcrDocument testDocument = new OcrDocument("test")
+            {
+                OcrText = "I solemnly swear\r\nI am up to no good."
+            };
+            _viewModel.SelectedDocument = testDocument;
+
             // 1 Word at a time
-            int grouping1 = 1;
-            object[] parms1 = { testingString, grouping1 };
+            _viewModel.NumberOfGroups = 1;
             List<string> expected1 = new List<string>() { "I", "solemnly", "swear", "I", "am", "up", "to", "no", "good." };
-            List<string> result1 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms1);
+            List<string> result1 = await _viewModel.SplitIntoGroups();
 
             CollectionAssert.AreEqual(expected1, result1);
 
             // 2 Words at a time
-            int grouping2 = 2;
-            object[] parms2 = { testingString, grouping2 };
+            _viewModel.NumberOfGroups = 2;
             List<string> expected2 = new List<string>() { "I solemnly", "swear I", "am up", "to no", "good." };
-            List<string> result2 = await (Task<List<string>>) _viewModelPrivate.Invoke("SplitIntoGroups", parms2);
+            List<string> result2 = await _viewModel.SplitIntoGroups();
 
             CollectionAssert.AreEqual(expected2, result2);
 
             // 3 Words at a time
-            int grouping3 = 3;
-            object[] parms3 = { testingString, grouping3 };
+            _viewModel.NumberOfGroups = 3;
             List<string> expected3 = new List<string>() { "I solemnly swear", "I am up", "to no good." };
-            List<string> result3 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms3);
+            List<string> result3 = await _viewModel.SplitIntoGroups();
 
             CollectionAssert.AreEqual(expected3, result3);
 
             // 4 Words at a time
-            int grouping4 = 4;
-            object[] parms4 = { testingString, grouping4 };
+            _viewModel.NumberOfGroups = 4;
             List<string> expected4 = new List<string>() { "I solemnly swear I", "am up to no", "good." };
-            List<string> result4 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms4);
+            List<string> result4 = await _viewModel.SplitIntoGroups();
 
             CollectionAssert.AreEqual(expected4, result4);
 
             // 5 Words at a time
-            int grouping5 = 5;
-            object[] parms5 = { testingString, grouping5 };
+            _viewModel.NumberOfGroups = 5;
             List<string> expected5 = new List<string>() { "I solemnly swear I am", "up to no good." };
-            List<string> result5 = await (Task<List<string>>)_viewModelPrivate.Invoke("SplitIntoGroups", parms5);
+            List<string> result5 = await _viewModel.SplitIntoGroups();
 
             CollectionAssert.AreEqual(expected5, result5);
         }
@@ -80,35 +78,51 @@ namespace WordByWord.Test
                 "\r\nI thought not. It's not a story the Jedi would tell you. It's a Sith legend. " +
                 "\r\nDarth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life...";
 
+            OcrDocument testDocument = new OcrDocument("test")
+            {
+                OcrText = testingString
+            };
+            _viewModel.SelectedDocument = testDocument;
+            
             // 1 Sentence at a time
-            int numSentences1 = 1;
-            object[] args1 = { testingString, numSentences1 };
+            _viewModel.NumberOfSentences = 1;
             string[] expected1 = { "Did you ever hear the tragedy of Darth Plagueis the Wise?", "I thought not.",
                 "It's not a story the Jedi would tell you.", "It's a Sith legend.", "Darth Plagueis was a Dark " +
                 "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
-            string[] result1 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args1);
+            List<string> result1 = await _viewModel.SplitIntoSentences();
 
             CollectionAssert.AreEqual(expected1, result1);
 
             // 2 Sentences at a time
-            int numSentences2 = 2;
-            object[] args2 = { testingString, numSentences2 };
+            _viewModel.NumberOfSentences = 2;
             string[] expected2 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not.",
                 "It's not a story the Jedi would tell you. It's a Sith legend.", "Darth Plagueis was a Dark " +
                 "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
-            string[] result2 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args2);
+            List<string> result2 = await _viewModel.SplitIntoSentences();
 
             CollectionAssert.AreEqual(expected2, result2);
 
             // 3 Sentences at a time
-            int numSentences3 = 3;
-            object[] args3 = { testingString, numSentences3 };
+            _viewModel.NumberOfSentences = 3;
             string[] expected3 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not. " +
                     "It's not a story the Jedi would tell you.", "It's a Sith legend. Darth Plagueis was a Dark " +
                     "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
-            string[] result3 = await (Task<string[]>) _viewModelPrivate.Invoke("SplitIntoSentences", args3);
+            List<string> result3 = await _viewModel.SplitIntoSentences();
 
             CollectionAssert.AreEqual(expected3, result3);
+        }
+
+        [TestMethod]
+        public void CalculateRelayDelay()
+        {
+            int group = 3;
+            _viewModel.WordsPerMinute = 200;
+
+            // We expect a group of 3 words @ 200 wpm to be ~900 ms of delay for the reader
+            int expected = 900;
+            _viewModel.CalculateRelayDelay(group);
+
+            Assert.AreEqual(_viewModel.ReaderDelay, expected); 
         }
     }
 }

@@ -493,14 +493,14 @@ namespace WordByWord.ViewModel
             }
         }
 
-        private void CalculateRelayDelay(int groups)
+        public void CalculateRelayDelay(int groups)
         {
             double wps = (double)_wordsPerMinute / 60;
             double ms = 1000 / wps;
             ReaderDelay = (int)ms * groups;
         }
 
-        private async Task<List<string>> SplitIntoSentences()
+        public async Task<List<string>> SplitIntoSentences()
         {
             List<string> groups = new List<string>();
 
@@ -521,7 +521,7 @@ namespace WordByWord.ViewModel
             return groups;
         }
 
-        private async Task<List<string>> SplitIntoGroups()
+        public async Task<List<string>> SplitIntoGroups()
         {
             List<string> groups = new List<string>();
 
