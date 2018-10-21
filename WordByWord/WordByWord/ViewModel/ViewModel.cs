@@ -33,8 +33,9 @@ namespace WordByWord.ViewModel
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
         private int _numberOfGroups = 1;
+        private int _wordsPerMinute = 120;
         private int _readerFontSize = 50;
-        private int _readerDelay = 200;
+        private int _readerDelay = 500; // two words per second
         private int _numberOfSentences = 1;
         private int _previousGrouping = 1;
 
@@ -121,29 +122,37 @@ namespace WordByWord.ViewModel
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
                 CurrentWord = string.Empty;
+
+                CalculateRelayDelay(_numberOfGroups);
+
                 switch (value)
                 {
                     case 1:
                         ReaderFontSize = 50;
-                        ReaderDelay = 200;
                         break;
                     case 2:
                         ReaderFontSize = 45;
-                        ReaderDelay = 300;
                         break;
                     case 3:
                         ReaderFontSize = 40;
-                        ReaderDelay = 500;
                         break;
                     case 4:
                         ReaderFontSize = 35;
-                        ReaderDelay = 650;
                         break;
                     case 5:
                         ReaderFontSize = 30;
-                        ReaderDelay = 800;
                         break;
                 }
+            }
+        }
+
+        public int WordsPerMinute
+        {
+            get => _wordsPerMinute;
+            set
+            {
+                Set(() => WordsPerMinute, ref _wordsPerMinute, value);
+                CalculateRelayDelay(_numberOfGroups);
             }
         }
 
@@ -285,10 +294,14 @@ namespace WordByWord.ViewModel
 
         public void LoadLibrary()
         {
-            string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
-            if (!string.IsNullOrEmpty(serializedLibraryFile))
+            if (Directory.Exists(SerializedDataFolderPath))
             {
-                Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(File.ReadAllText(serializedLibraryFile));
+                string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
+                if (!string.IsNullOrEmpty(serializedLibraryFile))
+                {
+                    Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(
+                        File.ReadAllText(serializedLibraryFile));
+                }
             }
         }
 
@@ -325,16 +338,16 @@ namespace WordByWord.ViewModel
             }
         }
 
-        private void ReadSelectedDocument()
+        private async void ReadSelectedDocument()
         {
             IsBusy = true;
             if (!SentenceReadingEnabled)
             {
-                ReadSelectedDocumentWordsAsync().GetAwaiter();
+                await ReadSelectedDocumentWordsAsync();
             }
             else
             {
-                ReadSelectedDocumentSentencesAsync().GetAwaiter();
+                await ReadSelectedDocumentSentencesAsync();
             }
         }
 
@@ -342,7 +355,7 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                List<string> words = await SplitIntoGroups(SelectedDocument.OcrText, NumberOfGroups);
+                List<string> words = await SplitIntoGroups();
 
                 foreach (string word in words)
                 {
@@ -361,29 +374,35 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 // Split on regex to preserve chars we split on. 
-                string[] sentences = await SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
+                List<string> sentences = await SplitIntoSentences();
 
                 foreach (string sentence in sentences)
                 {
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
                         CurrentWord = sentence;
-                        await Task.Delay((int)CalcDelay(sentence));
+                        string[] words = sentence.Split(' ');
+                        CalculateRelayDelay(words.Length);
+                        await Task.Delay(ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
         }
 
-        private double CalcDelay(string words)
+        private void CalculateRelayDelay(int groups)
         {
-            int delay = words.Length * 30;
-            return ReaderDelay + delay;
+            double wps = (double)_wordsPerMinute / 60;
+            double ms = 1000 / wps;
+            ReaderDelay = (int)ms * groups;
         }
 
-        private async Task<string[]> SplitIntoSentences(string text, int numberOfSentences)
+        private async Task<List<string>> SplitIntoSentences()
         {
             List<string> groups = new List<string>();
+
+            string text = SelectedDocument.OcrText;
+            int numberOfSentences = NumberOfSentences;
 
             await Task.Run(() =>
             {
@@ -396,12 +415,15 @@ namespace WordByWord.ViewModel
                 }
             });
 
-            return groups.ToArray();
+            return groups;
         }
 
-        private async Task<List<string>> SplitIntoGroups(string sentence, int numberOfWords)
+        private async Task<List<string>> SplitIntoGroups()
         {
             List<string> groups = new List<string>();
+
+            string sentence = SelectedDocument.OcrText;
+            int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
             {

@@ -174,8 +174,32 @@
                                      Background="Transparent"
                                      Grid.Row="1" 
                                      Grid.ColumnSpan="3">
-                    <mah:MetroTabItem Header="Item 1" Width="85"/>
-                    <mah:MetroTabItem Header="Word Grouping" Width="195">
+                    <mah:MetroTabItem Header="Speed" Width="85">
+                        <StackPanel>
+                            <Label HorizontalAlignment="Center"
+                                   Margin="0 13 0 0"
+                                   FontWeight="DemiBold"
+                                   Content="Number of words per minute (WPM):" 
+                                   FontSize="13"/>
+                            <Slider Width="250"
+                                    Value="{Binding WordsPerMinute}"
+                                    AutoToolTipPlacement="TopLeft"
+                                    TickPlacement="None"
+                                    TickFrequency="10"
+                                    mah:SliderHelper.EnableMouseWheel="MouseHover"
+                                    mah:SliderHelper.ChangeValueBy="LargeChange"
+                                    Maximum="900"
+                                    Minimum="30"
+                                    IsSnapToTickEnabled="True">
+                            </Slider>
+                            <TextBlock Text="{Binding WordsPerMinute}"
+                                       HorizontalAlignment="Center"
+                                       FontWeight="DemiBold"
+                                       FontStyle="Italic"
+                                       FontSize="20"/>
+                        </StackPanel>
+                    </mah:MetroTabItem>            
+                    <mah:MetroTabItem Header="Grouping" Width="125">
                         <StackPanel>
                             <Label HorizontalAlignment="Center"
                                    Margin="0 13 0 0"
