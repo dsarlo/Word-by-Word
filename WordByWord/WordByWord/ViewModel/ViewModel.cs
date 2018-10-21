@@ -123,7 +123,7 @@ namespace WordByWord.ViewModel
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
                 CurrentWord = string.Empty;
 
-                CalculateDelay(_numberOfGroups);
+                CalculateRelayDelay(_numberOfGroups);
 
                 switch (value)
                 {
@@ -152,7 +152,7 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => WordsPerMinute, ref _wordsPerMinute, value);
-                CalculateDelay(_numberOfGroups);
+                CalculateRelayDelay(_numberOfGroups);
             }
         }
 
@@ -381,20 +381,16 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
                         CurrentWord = sentence;
-                        await Task.Delay((int)CalcDelay(sentence));
+                        string[] words = sentence.Split(' ');
+                        CalculateRelayDelay(words.Length);
+                        await Task.Delay(ReaderDelay);
                     }
                 }
                 IsBusy = false;
             }
         }
 
-        private double CalcDelay(string words)
-        {
-            int delay = words.Length * 30;
-            return ReaderDelay + delay;
-        }
-
-        private void CalculateDelay(int groups)
+        private void CalculateRelayDelay(int groups)
         {
             double wps = (double)_wordsPerMinute / 60;
             double ms = 1000 / wps;
