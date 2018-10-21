@@ -31,8 +31,9 @@ namespace WordByWord.ViewModel
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
         private int _numberOfGroups = 1;
+        private int _wordsPerMinute = 120;
         private int _readerFontSize = 50;
-        private int _readerDelay = 200;
+        private int _readerDelay = 500; // two words per second
         private int _numberOfSentences = 1;
         private int _previousGrouping = 1;
 
@@ -111,29 +112,35 @@ namespace WordByWord.ViewModel
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
                 CurrentWord = string.Empty;
-                switch(value)
+                CalculateDelay(_numberOfGroups);
+                switch (value)
                 {
                     case 1:
                         ReaderFontSize = 50;
-                        ReaderDelay = 200;
                         break;
                     case 2:
                         ReaderFontSize = 45;
-                        ReaderDelay = 300;
                         break;
                     case 3:
                         ReaderFontSize = 40;
-                        ReaderDelay = 500;
                         break;
                     case 4:
                         ReaderFontSize = 35;
-                        ReaderDelay = 650;
                         break;
                     case 5:
                         ReaderFontSize = 30;
-                        ReaderDelay = 800;
                         break;
                 }
+            }
+        }
+
+        public int WordsPerMinute
+        {
+            get => _wordsPerMinute;
+            set
+            {
+                Set(() => WordsPerMinute, ref _wordsPerMinute, value);
+                CalculateDelay(_numberOfGroups);
             }
         }
 
@@ -348,6 +355,13 @@ namespace WordByWord.ViewModel
         {
             int delay = words.Length * 30;
             return ReaderDelay + delay;
+        }
+
+        private void CalculateDelay(int groups)
+        {
+            double wps = (double)_wordsPerMinute / 60;
+            double ms = 1000 / wps;
+            ReaderDelay = (int)ms * groups;
         }
 
         private async Task<string[]> SplitIntoSentences(string text, int numberOfSentences)
