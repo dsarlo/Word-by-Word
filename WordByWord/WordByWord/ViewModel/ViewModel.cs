@@ -33,11 +33,11 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
-        private int _numberOfGroups = 1;
-        private int _wordsPerMinute = 120;
-        private int _readerFontSize = 50;
+        private int _numberOfGroups;
+        private int _wordsPerMinute;
+        private int _readerFontSize;
         private int _readerDelay = 500; // two words per second
-        private int _numberOfSentences = 1;
+        private int _numberOfSentences;
         private int _previousGrouping = 1;
         private int _pausedWordIndex = 0;
         private bool _resumeReading = false;
@@ -51,6 +51,7 @@ namespace WordByWord.ViewModel
 
         public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
+            LoadSettings();
             _dialogService = dialogService;
             _windowService = windowService;
 
@@ -62,7 +63,7 @@ namespace WordByWord.ViewModel
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             //ReadSelectedDocumentCommand = new RelayCommand(() => ReadSelectedDocument(ctoken), () => !IsBusy);
-            ReadSelectedDocumentCommand = new RelayCommand(async () => 
+            ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
                 if (!IsBusy)
                 {
@@ -71,15 +72,22 @@ namespace WordByWord.ViewModel
                     await ReadSelectedDocument(ctoken);
                     _cSource.Dispose();
                     _cSource = new CancellationTokenSource();
-                }                
+                }
             }, true);
+            
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
+
             PauseReadingCommand = new RelayCommand(() => _cSource.Cancel());
 
+            ResetCommand = new RelayCommand(Reset);
+
             LoadLibrary();
+
+            //TODO: Once Play/Pause is implemented, reset the reader to the beginning of the document!
         }
 
         #region Properties
+        public RelayCommand ResetCommand { get; }
 
         public RelayCommand CreateDocFromUserInputCommand { get; }
 
@@ -120,6 +128,8 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 20;
                         break;
                 }
+                Properties.Settings.Default.NumberOfSentences = value;
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -160,8 +170,11 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 30;
                         break;
                 }
+                Properties.Settings.Default.WordsGrouping = value;
+                Properties.Settings.Default.Save();
             }
         }
+
 
         public int WordsPerMinute
         {
@@ -170,7 +183,10 @@ namespace WordByWord.ViewModel
             {
                 Set(() => WordsPerMinute, ref _wordsPerMinute, value);
                 CalculateRelayDelay(_numberOfGroups);
+                Properties.Settings.Default.WPM = value;
+                Properties.Settings.Default.Save();
             }
+
         }
 
         public string UserInputTitle
@@ -253,6 +269,8 @@ namespace WordByWord.ViewModel
                 {
                     NumberOfGroups = _previousGrouping;
                 }
+                Properties.Settings.Default.SentencesEnabled = value;
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -298,6 +316,38 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+        public void LoadSettings()
+        {
+            NumberOfSentences = Properties.Settings.Default.NumberOfSentences;
+            SentenceReadingEnabled = Properties.Settings.Default.SentencesEnabled;
+            NumberOfGroups = Properties.Settings.Default.WordsGrouping;
+            WordsPerMinute = Properties.Settings.Default.WPM;
+        }
+
+        public void Reset()
+        {
+            MetroDialogSettings settings = new MetroDialogSettings()
+            {
+                AffirmativeButtonText = "Reset",
+                NegativeButtonText = "Cancel"
+            };
+            MessageDialogResult result = _dialogService.ShowModalMessageExternal(this, "Are you sure?", "This will reset your settings to defaults and return the reader to the beginning of the document. Are you sure you want to proceed?", MessageDialogStyle.AffirmativeAndNegative, settings);
+            if (result == MessageDialogResult.Affirmative)
+            {
+                NumberOfSentences = 1;
+                SentenceReadingEnabled = false;
+                WordsPerMinute = 120;
+                NumberOfGroups = 1;
+                CurrentWord = string.Empty;
+
+                _cSource.Cancel();
+                _cSource.Dispose();
+                _cSource = new CancellationTokenSource();
+                _resumeReading = false;
+                _pausedWordIndex = 0;
+            }
+
+        }
 
         public void SaveLibrary()
         {
@@ -404,7 +454,7 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                // Split on regex to preserve chars we split on. 
+                // Split on regex to preserve chars we split on.
                 List<string> sentences = await SplitIntoSentences();
 
                 for (int sentenceIndex = _resumeReading ? _pausedWordIndex : 0; sentenceIndex < sentences.Count; sentenceIndex++)
