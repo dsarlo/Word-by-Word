@@ -38,13 +38,12 @@ namespace WordByWord.ViewModel
         private int _readerFontSize;
         private int _readerDelay = 500; // two words per second
         private int _numberOfSentences;
-        private int _previousGrouping = 1;
-        private int _pausedWordIndex = 0;
-        private bool _resumeReading = false;
+        private int _pausedWordIndex;
+        private bool _resumeReading;
+
         private CancellationTokenSource _cSource = new CancellationTokenSource();
 
         private static readonly string SerializedDataFolderPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\word-by-word\";
-
         private readonly string _serializedLibraryPath = $"{SerializedDataFolderPath}library.json";
 
         private readonly IDialogCoordinator _dialogService;
@@ -53,6 +52,7 @@ namespace WordByWord.ViewModel
         public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
             LoadSettings();
+
             _dialogService = dialogService;
             _windowService = windowService;
 
@@ -63,7 +63,6 @@ namespace WordByWord.ViewModel
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
-            //ReadSelectedDocumentCommand = new RelayCommand(() => ReadSelectedDocument(ctoken), () => !IsBusy);
             ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
                 if (!IsBusy)
@@ -83,8 +82,6 @@ namespace WordByWord.ViewModel
             ResetCommand = new RelayCommand(Reset);
 
             LoadLibrary();
-
-            //TODO: Once Play/Pause is implemented, reset the reader to the beginning of the document!
         }
 
         #region Properties
@@ -263,12 +260,7 @@ namespace WordByWord.ViewModel
                 CurrentWord = string.Empty;
                 if (value)
                 {
-                    _previousGrouping = NumberOfGroups;
                     ReaderFontSize = 30;
-                }
-                else
-                {
-                    NumberOfGroups = _previousGrouping;
                 }
                 Properties.Settings.Default.SentencesEnabled = value;
                 Properties.Settings.Default.Save();
@@ -447,8 +439,12 @@ namespace WordByWord.ViewModel
 
                     if (ctoken.IsCancellationRequested && wordIndex != words.Count - 1)
                     {
-                        _pausedWordIndex = wordIndex;
-                        _resumeReading = true;
+                        if (_currentWord != string.Empty)
+                        {
+                            _pausedWordIndex = wordIndex;
+                            _resumeReading = true;
+                        }
+
                         break;
                     }
                 }
@@ -482,8 +478,12 @@ namespace WordByWord.ViewModel
 
                     if (ctoken.IsCancellationRequested && sentenceIndex != sentences.Count - 1)
                     {
-                        _pausedWordIndex = sentenceIndex;
-                        _resumeReading = true;
+                        if (_currentWord != string.Empty)
+                        {
+                            _pausedWordIndex = sentenceIndex;
+                            _resumeReading = true;
+                        }
+
                         break;
                     }
                 }
