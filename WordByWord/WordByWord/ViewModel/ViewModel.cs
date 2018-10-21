@@ -294,10 +294,14 @@ namespace WordByWord.ViewModel
 
         public void LoadLibrary()
         {
-            string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
-            if (!string.IsNullOrEmpty(serializedLibraryFile))
+            if (Directory.Exists(SerializedDataFolderPath))
             {
-                Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(File.ReadAllText(serializedLibraryFile));
+                string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
+                if (!string.IsNullOrEmpty(serializedLibraryFile))
+                {
+                    Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(
+                        File.ReadAllText(serializedLibraryFile));
+                }
             }
         }
 
