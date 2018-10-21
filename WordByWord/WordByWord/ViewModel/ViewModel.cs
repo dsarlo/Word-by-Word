@@ -60,11 +60,14 @@ namespace WordByWord.ViewModel
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument, () => !IsBusy);
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
-
+            ResetCommand = new RelayCommand(Reset);
             LoadLibrary();
+
+            //TODO: Once Play/Pause is implemented, reset the reader to the beginning of the document!
         }
 
         #region Properties
+        public RelayCommand ResetCommand { get; }
 
         public RelayCommand CreateDocFromUserInputCommand { get; }
 
@@ -281,6 +284,24 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+        public void Reset()
+        {
+            MetroDialogSettings settings = new MetroDialogSettings()
+            {
+                AffirmativeButtonText = "Reset",
+                NegativeButtonText = "Cancel"
+            };
+            MessageDialogResult result = _dialogService.ShowModalMessageExternal(this, "Are you sure?", "This will reset your settings to defaults and return the reader to the beginning of the document. Are you sure you want to proceed?", MessageDialogStyle.AffirmativeAndNegative, settings);
+            if (result == MessageDialogResult.Affirmative)
+            {
+                NumberOfSentences = 1;
+                SentenceReadingEnabled = false;
+                WordsPerMinute = 120;
+                NumberOfGroups = 1;
+                CurrentWord = string.Empty;
+            }
+
+        }
 
         public void SaveLibrary()
         {

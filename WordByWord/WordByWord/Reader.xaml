@@ -132,14 +132,15 @@
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
-            <Button Style="{DynamicResource MetroCircleButtonStyle}" 
-                Grid.Column="2" 
-                Margin="0 0 10 0"
-                Width="50" 
-                Height="50" 
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Top"
-                BorderThickness="0">
+            <Button Command="{Binding ResetCommand}"
+                    Style="{DynamicResource MetroCircleButtonStyle}" 
+                    Grid.Column="2" 
+                    Margin="0 0 10 0"
+                    Width="50" 
+                    Height="50" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top"
+                    BorderThickness="0">
                 <Rectangle Width="25"
                            Height="30"
                            Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
