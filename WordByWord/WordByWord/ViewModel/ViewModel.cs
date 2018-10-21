@@ -146,7 +146,8 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
-                CurrentWord = string.Empty;
+
+                StopCurrentDocument();
 
                 CalculateRelayDelay(_numberOfGroups);
 
@@ -344,7 +345,7 @@ namespace WordByWord.ViewModel
             _cSource = new CancellationTokenSource();
             _resumeReading = false;
             _pausedWordIndex = 0;
-            _currentWord = string.Empty;
+            CurrentWord = string.Empty;
         }
 
         public void SaveLibrary()
