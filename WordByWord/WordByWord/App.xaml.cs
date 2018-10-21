@@ -2,7 +2,7 @@
 using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
 using MahApps.Metro.Controls.Dialogs;
-using WordByWord.Helpers;
+using WordByWord.Services;
 
 namespace WordByWord
 {

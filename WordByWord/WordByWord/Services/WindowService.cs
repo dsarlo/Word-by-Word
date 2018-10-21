@@ -1,5 +1,5 @@
 ﻿
-namespace WordByWord.Helpers
+namespace WordByWord.Services
 {
     public interface IWindowService
     {

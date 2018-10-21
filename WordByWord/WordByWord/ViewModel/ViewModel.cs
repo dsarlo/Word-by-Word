@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GalaSoft.MvvmLight;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,9 +13,10 @@ using IronOcr;
 using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
-using WordByWord.Helpers;
-using System.Text;
+using WordByWord.Services;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace WordByWord.ViewModel
 {
@@ -37,6 +39,9 @@ namespace WordByWord.ViewModel
         private int _numberOfSentences = 1;
         private int _previousGrouping = 1;
 
+        private static readonly string SerializedDataFolderPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\word-by-word\";
+        private readonly string _serializedLibraryPath = $"{SerializedDataFolderPath}library.json";
+
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
 
@@ -55,6 +60,8 @@ namespace WordByWord.ViewModel
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(ReadSelectedDocument, () => !IsBusy);
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
+
+            LoadLibrary();
         }
 
         #region Properties
@@ -84,13 +91,16 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfSentences, ref _numberOfSentences, value);
-                switch(value)
+                switch (value)
                 {
-                    case 1: ReaderFontSize = 30;
+                    case 1:
+                        ReaderFontSize = 30;
                         break;
-                    case 2: ReaderFontSize = 20;
+                    case 2:
+                        ReaderFontSize = 20;
                         break;
-                    case 3: ReaderFontSize = 20;
+                    case 3:
+                        ReaderFontSize = 20;
                         break;
                 }
             }
@@ -112,7 +122,9 @@ namespace WordByWord.ViewModel
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
                 CurrentWord = string.Empty;
+
                 CalculateDelay(_numberOfGroups);
+
                 switch (value)
                 {
                     case 1:
@@ -261,6 +273,7 @@ namespace WordByWord.ViewModel
                 if (filePaths.Count > 0)
                 {
                     await RunOcrOnFiles(filePaths);
+                    SaveLibrary();
                 }
             }
         }
@@ -269,17 +282,35 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
+        public void SaveLibrary()
+        {
+            if (!Directory.Exists(SerializedDataFolderPath))
+            {
+                Directory.CreateDirectory(SerializedDataFolderPath);
+            }
+            string libraryAsJson = JsonConvert.SerializeObject(_library.Where(doc => !doc.IsBusy), Formatting.Indented);
+            File.WriteAllText(_serializedLibraryPath, libraryAsJson, Encoding.UTF8);
+        }
+
+        public void LoadLibrary()
+        {
+            string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
+            if (!string.IsNullOrEmpty(serializedLibraryFile))
+            {
+                Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(File.ReadAllText(serializedLibraryFile));
+            }
+        }
+
         private void CreateDocFromUserInput()
         {
             if (!string.IsNullOrEmpty(UserInputTitle))
             {
                 if (Library.All(doc => doc.FileName != UserInputTitle))
                 {
-                    OcrDocument newDoc =
-                        new OcrDocument(UserInputTitle) //All OcrDocuments must be created with a filePath!
-                        {
-                            OcrText = UserInputBody
-                        };
+                    OcrDocument newDoc = new OcrDocument(UserInputTitle) //All OcrDocuments must be created with a filePath!
+                    {
+                        OcrText = UserInputBody
+                    };
 
                     Library.Add(newDoc);
 
@@ -287,6 +318,8 @@ namespace WordByWord.ViewModel
                     UserInputBody = string.Empty;
 
                     _windowService.CloseWindow("InputText", this);
+
+                    SaveLibrary();
                 }
                 else
                 {
@@ -325,7 +358,7 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay((int) ReaderDelay);
+                        await Task.Delay(ReaderDelay);
                     }
                 }
                 IsBusy = false;
@@ -344,7 +377,7 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
                         CurrentWord = sentence;
-                        await Task.Delay((int) CalcDelay(sentence));
+                        await Task.Delay((int)CalcDelay(sentence));
                     }
                 }
                 IsBusy = false;
@@ -396,7 +429,7 @@ namespace WordByWord.ViewModel
                     groups.Add(group);
                 }
             });
-            
+
             return groups;
         }
 
@@ -417,6 +450,8 @@ namespace WordByWord.ViewModel
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
 
             _windowService.CloseWindow("Editor", this);
+
+            SaveLibrary();
         }
 
         internal void OpenReaderWindow()

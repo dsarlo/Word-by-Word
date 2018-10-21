@@ -4,7 +4,7 @@ using MahApps.Metro.Controls.Dialogs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WordByWord.Helpers;
+using WordByWord.Services;
 
 namespace WordByWord.Test
 {
