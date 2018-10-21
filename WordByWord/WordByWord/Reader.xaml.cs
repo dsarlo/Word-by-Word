@@ -47,16 +47,9 @@ namespace WordByWord
             ShowHideMenu("SbShowBottomMenu", BtnBottomMenuHide, BtnBottomMenuShow, BottomMenu);
         }
 
-        private void PlayButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void MetroWindow_Closing(object sender, CancelEventArgs e)
         {
-            PlayButton.Visibility = System.Windows.Visibility.Collapsed;
-            PauseButton.Visibility = System.Windows.Visibility.Visible;
-        }
-
-        private void PauseButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            PlayButton.Visibility = System.Windows.Visibility.Visible;
-            PauseButton.Visibility = System.Windows.Visibility.Collapsed;
+            _viewModel.StopCurrentDocument();
         }
     }
 }

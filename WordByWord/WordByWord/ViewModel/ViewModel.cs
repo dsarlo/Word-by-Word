@@ -44,6 +44,7 @@ namespace WordByWord.ViewModel
         private CancellationTokenSource _cSource = new CancellationTokenSource();
 
         private static readonly string SerializedDataFolderPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\word-by-word\";
+
         private readonly string _serializedLibraryPath = $"{SerializedDataFolderPath}library.json";
 
         private readonly IDialogCoordinator _dialogService;
@@ -340,13 +341,18 @@ namespace WordByWord.ViewModel
                 NumberOfGroups = 1;
                 CurrentWord = string.Empty;
 
-                _cSource.Cancel();
-                _cSource.Dispose();
-                _cSource = new CancellationTokenSource();
-                _resumeReading = false;
-                _pausedWordIndex = 0;
+                StopCurrentDocument();
             }
+        }
 
+        internal void StopCurrentDocument()
+        {
+            _cSource.Cancel();
+            _cSource.Dispose();
+            _cSource = new CancellationTokenSource();
+            _resumeReading = false;
+            _pausedWordIndex = 0;
+            _currentWord = string.Empty;
         }
 
         public void SaveLibrary()
