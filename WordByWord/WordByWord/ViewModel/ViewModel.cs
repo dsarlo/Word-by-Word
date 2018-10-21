@@ -338,16 +338,16 @@ namespace WordByWord.ViewModel
             }
         }
 
-        private void ReadSelectedDocument()
+        private async void ReadSelectedDocument()
         {
             IsBusy = true;
             if (!SentenceReadingEnabled)
             {
-                ReadSelectedDocumentWordsAsync().GetAwaiter();
+                await ReadSelectedDocumentWordsAsync();
             }
             else
             {
-                ReadSelectedDocumentSentencesAsync().GetAwaiter();
+                await ReadSelectedDocumentSentencesAsync();
             }
         }
 
@@ -355,7 +355,7 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                List<string> words = await SplitIntoGroups(SelectedDocument.OcrText, NumberOfGroups);
+                List<string> words = await SplitIntoGroups();
 
                 foreach (string word in words)
                 {
@@ -374,7 +374,7 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 // Split on regex to preserve chars we split on. 
-                string[] sentences = await SplitIntoSentences(SelectedDocument.OcrText, NumberOfSentences);
+                List<string> sentences = await SplitIntoSentences();
 
                 foreach (string sentence in sentences)
                 {
@@ -397,9 +397,12 @@ namespace WordByWord.ViewModel
             ReaderDelay = (int)ms * groups;
         }
 
-        private async Task<string[]> SplitIntoSentences(string text, int numberOfSentences)
+        private async Task<List<string>> SplitIntoSentences()
         {
             List<string> groups = new List<string>();
+
+            string text = SelectedDocument.OcrText;
+            int numberOfSentences = NumberOfSentences;
 
             await Task.Run(() =>
             {
@@ -412,12 +415,15 @@ namespace WordByWord.ViewModel
                 }
             });
 
-            return groups.ToArray();
+            return groups;
         }
 
-        private async Task<List<string>> SplitIntoGroups(string sentence, int numberOfWords)
+        private async Task<List<string>> SplitIntoGroups()
         {
             List<string> groups = new List<string>();
+
+            string sentence = SelectedDocument.OcrText;
+            int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
             {
