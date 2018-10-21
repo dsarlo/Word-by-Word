@@ -32,11 +32,11 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
-        private int _numberOfGroups = 1;
-        private int _wordsPerMinute = 120;
-        private int _readerFontSize = 50;
+        private int _numberOfGroups;
+        private int _wordsPerMinute;
+        private int _readerFontSize;
         private int _readerDelay = 500; // two words per second
-        private int _numberOfSentences = 1;
+        private int _numberOfSentences;
         private int _previousGrouping = 1;
 
         private static readonly string SerializedDataFolderPath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\word-by-word\";
@@ -48,6 +48,7 @@ namespace WordByWord.ViewModel
 
         public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
+            LoadSettings();
             _dialogService = dialogService;
             _windowService = windowService;
 
@@ -106,6 +107,8 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 20;
                         break;
                 }
+                Properties.Settings.Default.NumberOfSentences = value;
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -146,8 +149,11 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 30;
                         break;
                 }
+                Properties.Settings.Default.WordsGrouping = value;
+                Properties.Settings.Default.Save();
             }
         }
+
 
         public int WordsPerMinute
         {
@@ -156,7 +162,10 @@ namespace WordByWord.ViewModel
             {
                 Set(() => WordsPerMinute, ref _wordsPerMinute, value);
                 CalculateRelayDelay(_numberOfGroups);
+                Properties.Settings.Default.WPM = value;
+                Properties.Settings.Default.Save();
             }
+
         }
 
         public string UserInputTitle
@@ -239,6 +248,8 @@ namespace WordByWord.ViewModel
                 {
                     NumberOfGroups = _previousGrouping;
                 }
+                Properties.Settings.Default.SentencesEnabled = value;
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -284,6 +295,14 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+        public void LoadSettings()
+        {
+            NumberOfSentences = Properties.Settings.Default.NumberOfSentences;
+            SentenceReadingEnabled = Properties.Settings.Default.SentencesEnabled;
+            NumberOfGroups = Properties.Settings.Default.WordsGrouping;
+            WordsPerMinute = Properties.Settings.Default.WPM;
+        }
+
         public void Reset()
         {
             MetroDialogSettings settings = new MetroDialogSettings()
