@@ -500,7 +500,7 @@ namespace WordByWord.ViewModel
 
             await Task.Run(() =>
             {
-                string[] sentences = Regex.Split(text.Replace("\r\n", " ").Replace("...", "…"), "(?<!(?:Mr|Mr.|Dr|Ms|St|a|p|m|K)\\.)(?<=[\".!;\\?])\\s+", RegexOptions.IgnoreCase).ToArray();
+                string[] sentences = Regex.Split(text.Replace("\r\n", " ").Replace("...", "…"), "(?<!(?:Mr|Mr.|Dr|Ms|St|a|p|m|K)\\.)(?<=[\".\u2026!;\\?])\\s+", RegexOptions.IgnoreCase).ToArray();
 
                 for (int i = 0; i < sentences.Length; i += numberOfSentences)
                 {
