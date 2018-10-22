@@ -309,24 +309,9 @@ namespace WordByWord.ViewModel
             WordsPerMinute = Properties.Settings.Default.WPM;
         }
 
-        public void Reset()
+        private void Reset()
         {
-            MetroDialogSettings settings = new MetroDialogSettings()
-            {
-                AffirmativeButtonText = "Reset",
-                NegativeButtonText = "Cancel"
-            };
-            MessageDialogResult result = _dialogService.ShowModalMessageExternal(this, "Are you sure?", "This will reset your settings to defaults and return the reader to the beginning of the document. Are you sure you want to proceed?", MessageDialogStyle.AffirmativeAndNegative, settings);
-            if (result == MessageDialogResult.Affirmative)
-            {
-                NumberOfSentences = 1;
-                SentenceReadingEnabled = false;
-                WordsPerMinute = 120;
-                NumberOfGroups = 1;
-                CurrentWord = string.Empty;
-
-                StopCurrentDocument();
-            }
+            StopCurrentDocument();
         }
 
         internal void StopCurrentDocument()
