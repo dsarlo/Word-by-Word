@@ -34,41 +34,5 @@ namespace WordByWord.Properties {
                 this["WPM"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public int WordsGrouping {
-            get {
-                return ((int)(this["WordsGrouping"]));
-            }
-            set {
-                this["WordsGrouping"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int NumberOfSentences {
-            get {
-                return ((int)(this["NumberOfSentences"]));
-            }
-            set {
-                this["NumberOfSentences"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool SentencesEnabled {
-            get {
-                return ((bool)(this["SentencesEnabled"]));
-            }
-            set {
-                this["SentencesEnabled"] = value;
-            }
-        }
     }
 }

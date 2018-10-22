@@ -33,11 +33,11 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
-        private int _numberOfGroups;
+        private int _numberOfGroups = 1;
         private int _wordsPerMinute;
-        private int _readerFontSize;
+        private int _readerFontSize = 50;
         private int _readerDelay = 500; // two words per second
-        private int _numberOfSentences;
+        private int _numberOfSentences = 1;
         private int _pausedWordIndex;
         private bool _resumeReading;
 
@@ -126,8 +126,6 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 20;
                         break;
                 }
-                Properties.Settings.Default.NumberOfSentences = value;
-                Properties.Settings.Default.Save();
             }
         }
 
@@ -169,8 +167,6 @@ namespace WordByWord.ViewModel
                         ReaderFontSize = 30;
                         break;
                 }
-                Properties.Settings.Default.WordsGrouping = value;
-                Properties.Settings.Default.Save();
             }
         }
 
@@ -263,8 +259,6 @@ namespace WordByWord.ViewModel
                 {
                     ReaderFontSize = 30;
                 }
-                Properties.Settings.Default.SentencesEnabled = value;
-                Properties.Settings.Default.Save();
             }
         }
 
@@ -312,9 +306,6 @@ namespace WordByWord.ViewModel
         #region Methods
         public void LoadSettings()
         {
-            NumberOfSentences = Properties.Settings.Default.NumberOfSentences;
-            SentenceReadingEnabled = Properties.Settings.Default.SentencesEnabled;
-            NumberOfGroups = Properties.Settings.Default.WordsGrouping;
             WordsPerMinute = Properties.Settings.Default.WPM;
         }
 
