@@ -332,6 +332,7 @@ namespace WordByWord.ViewModel
                 if (_currentWordIndex != 0)
                 {
                     CurrentWord = _wordsToRead[--_currentWordIndex];
+                    _resumeReading = true;
                 }
             }
             else
@@ -339,6 +340,7 @@ namespace WordByWord.ViewModel
                 if (_currentSentenceIndex != 0)
                 {
                     CurrentWord = _sentencesToRead[--_currentSentenceIndex];
+                    _resumeReading = true;
                 }
             }
         }
@@ -355,6 +357,7 @@ namespace WordByWord.ViewModel
                 if (_currentWordIndex != _wordsToRead.Count - 1)
                 {
                     CurrentWord = _wordsToRead[++_currentWordIndex];
+                    _resumeReading = true;
                 }
             }
             else
@@ -362,6 +365,7 @@ namespace WordByWord.ViewModel
                 if (_currentSentenceIndex != _sentencesToRead.Count - 1)
                 {
                     CurrentWord = _sentencesToRead[++_currentSentenceIndex];
+                    _resumeReading = true;
                 }
             }
         }
