@@ -38,8 +38,11 @@ namespace WordByWord.ViewModel
         private int _readerFontSize = 50;
         private int _readerDelay = 500; // two words per second
         private int _numberOfSentences = 1;
-        private int _pausedWordIndex;
+        private int _currentWordIndex;
+        private int _currentSentenceIndex;
         private bool _resumeReading;
+        private List<string> _wordsToRead;
+        private List<string> _sentencesToRead;
 
         private CancellationTokenSource _cSource = new CancellationTokenSource();
 
@@ -76,10 +79,10 @@ namespace WordByWord.ViewModel
             }, true);
             
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
-
             PauseReadingCommand = new RelayCommand(() => _cSource.Cancel());
-
             ResetCommand = new RelayCommand(Reset);
+            StepBackwardCommand = new RelayCommand(StepBackward);
+            StepForwardCommand = new RelayCommand(StepForward);
 
             LoadLibrary();
         }
@@ -98,6 +101,10 @@ namespace WordByWord.ViewModel
         public RelayCommand AddDocumentCommand { get; }
 
         public RelayCommand PauseReadingCommand { get; }
+
+        public RelayCommand StepBackwardCommand { get; }
+
+        public RelayCommand StepForwardCommand { get; }
 
         public int ReaderDelay
         {
@@ -169,7 +176,6 @@ namespace WordByWord.ViewModel
                 }
             }
         }
-
 
         public int WordsPerMinute
         {
@@ -314,13 +320,59 @@ namespace WordByWord.ViewModel
             StopCurrentDocument();
         }
 
+        private void StepBackward()
+        {
+            if (IsBusy)
+            {
+                _cSource.Cancel();
+            }
+
+            if (!SentenceReadingEnabled)
+            {
+                if (_currentWordIndex != 0)
+                {
+                    CurrentWord = _wordsToRead[--_currentWordIndex];
+                }
+            }
+            else
+            {
+                if (_currentSentenceIndex != 0)
+                {
+                    CurrentWord = _sentencesToRead[--_currentSentenceIndex];
+                }
+            }
+        }
+
+        private void StepForward()
+        {
+            if (IsBusy)
+            {
+                _cSource.Cancel();
+            }
+
+            if (!SentenceReadingEnabled)
+            {
+                if (_currentWordIndex != _wordsToRead.Count - 1)
+                {
+                    CurrentWord = _wordsToRead[++_currentWordIndex];
+                }
+            }
+            else
+            {
+                if (_currentSentenceIndex != _sentencesToRead.Count - 1)
+                {
+                    CurrentWord = _sentencesToRead[++_currentSentenceIndex];
+                }
+            }
+        }
+
         internal void StopCurrentDocument()
         {
             _cSource.Cancel();
             _cSource.Dispose();
             _cSource = new CancellationTokenSource();
             _resumeReading = false;
-            _pausedWordIndex = 0;
+            _currentWordIndex = 0;
             CurrentWord = string.Empty;
         }
 
@@ -397,28 +449,27 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                List<string> words = await SplitIntoGroups();
+                _wordsToRead = await SplitIntoGroups();
 
-                for (int wordIndex = _resumeReading ? _pausedWordIndex : 0; wordIndex < words.Count; wordIndex++)
+                for (int wordIndex = _resumeReading ? _currentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
-                    string word = words[wordIndex];
+                    _currentWordIndex = wordIndex;
+                    string word = _wordsToRead[wordIndex];
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
                         await Task.Delay(ReaderDelay);
                     }
 
-                    if (_resumeReading && wordIndex == words.Count-1)
+                    if (_resumeReading && wordIndex == _wordsToRead.Count-1)
                     {
                         _resumeReading = false;
-                        _pausedWordIndex = 0;
                     }
 
-                    if (ctoken.IsCancellationRequested && wordIndex != words.Count - 1)
+                    if (ctoken.IsCancellationRequested && wordIndex != _wordsToRead.Count - 1)
                     {
                         if (_currentWord != string.Empty)
                         {
-                            _pausedWordIndex = wordIndex;
                             _resumeReading = true;
                         }
 
@@ -434,11 +485,12 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 // Split on regex to preserve chars we split on.
-                List<string> sentences = await SplitIntoSentences();
+                _sentencesToRead = await SplitIntoSentences();
 
-                for (int sentenceIndex = _resumeReading ? _pausedWordIndex : 0; sentenceIndex < sentences.Count; sentenceIndex++)
+                for (int sentenceIndex = _resumeReading ? _currentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
-                    string sentence = sentences[sentenceIndex];
+                    _currentSentenceIndex = sentenceIndex;
+                    string sentence = _sentencesToRead[sentenceIndex];
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
                         CurrentWord = sentence;
@@ -447,17 +499,15 @@ namespace WordByWord.ViewModel
                         await Task.Delay(ReaderDelay);
                     }
 
-                    if (_resumeReading && sentenceIndex == sentences.Count - 1)
+                    if (_resumeReading && sentenceIndex == _sentencesToRead.Count - 1)
                     {
                         _resumeReading = false;
-                        _pausedWordIndex = 0;
                     }
 
-                    if (ctoken.IsCancellationRequested && sentenceIndex != sentences.Count - 1)
+                    if (ctoken.IsCancellationRequested && sentenceIndex != _sentencesToRead.Count - 1)
                     {
                         if (_currentWord != string.Empty)
                         {
-                            _pausedWordIndex = sentenceIndex;
                             _resumeReading = true;
                         }
 
