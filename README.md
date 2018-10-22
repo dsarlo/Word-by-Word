@@ -8,3 +8,4 @@ The text will then be displayed back to the user one word at a time at a fast an
 ### **Versions:**
 
 <a class="github-button" href="https://drive.google.com/open?id=1MokNGmR_bFPlE8AYh4f3ZLxwAC44Lsq3">Sprint 1 Download (Release)</a>
+<a class="github-button" href="https://drive.google.com/file/d/1R6DQfJp3aTQeAtTYfoubyG4ihE2YP-zl/view">Sprint 2 Download (Release)</a>
