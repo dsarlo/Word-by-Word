@@ -10,7 +10,7 @@
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         dialog:DialogParticipation.Register="{Binding}"
         mc:Ignorable="d"
-        Title="Reader" Height="450" Width="800"
+        Title="Reader" Height="650" Width="1000"
         Closing="MetroWindow_Closing">
     
 
@@ -54,67 +54,66 @@
             </Rectangle>
         </Button>
 
-        <StackPanel Grid.Column="1"
-                    VerticalAlignment="Bottom"
-                    HorizontalAlignment="Center">
+        <TextBlock Grid.Column="1"
+                   x:Name="WordDisplay"
+                   MinHeight="30"
+                   MaxHeight="200"
+                   Margin="0 0 0 87"
+                   FontSize="{Binding ReaderFontSize}"
+                   Text ="{Binding CurrentWord}"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"/>
 
-            <TextBlock x:Name="WordDisplay"
-                       MinHeight="30"
-                       MaxHeight="200"
-                       Margin="0 0 0 8"
-                       FontSize="{Binding ReaderFontSize}"
-                       Text ="{Binding CurrentWord}"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
-            <StackPanel Orientation="Horizontal" 
+            <StackPanel Grid.Column="1" Grid.Row="0"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal" 
                         HorizontalAlignment="Center">
-                <Button Style="{DynamicResource MetroCircleButtonStyle}" 
+            <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                         Command="{Binding StepBackwardCommand}"
                         Width="50" 
                         Height="50" 
                         BorderBrush="Black">
-                    <Rectangle Width="20"
+                <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_previous}" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </Button>
-                <Button x:Name="PlayButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}, ConverterParameter=Play}" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black" >
-                    <Rectangle Width="20"
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_previous}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+            <Button x:Name="PlayButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}, ConverterParameter=Play}" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black" >
+                <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_play}" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </Button>
-                <Button x:Name="PauseButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}}" Command="{Binding PauseReadingCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
-                    <Rectangle Width="20"
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_play}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+            <Button x:Name="PauseButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}}" Command="{Binding PauseReadingCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
+                <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_pause}" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </Button>
-                <Button Style="{DynamicResource MetroCircleButtonStyle}" 
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_pause}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
+            <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                         Command="{Binding StepForwardCommand}"
                         Width="50" 
                         Height="50" 
                         BorderBrush="Black">
-                    <Rectangle Width="20"
+                <Rectangle Width="20"
                                Height="20"
                                Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_next}" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
-                </Button>
-            </StackPanel>
+                    <Rectangle.OpacityMask>
+                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_next}" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Button>
         </StackPanel>
 
         <StackPanel Grid.Column="2">
@@ -133,22 +132,6 @@
                            Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
                     <Rectangle.OpacityMask>
                         <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_clipboard_edit}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
-            </Button>
-            <Button Style="{DynamicResource MetroCircleButtonStyle}" 
-                Grid.Column="2" 
-                Width="50" 
-                Height="50" 
-                Margin="0 0 10 0"
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Top"
-                BorderThickness="0">
-                <Rectangle Width="30"
-                           Height="30"
-                           Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_settings}" />
                     </Rectangle.OpacityMask>
                 </Rectangle>
             </Button>
