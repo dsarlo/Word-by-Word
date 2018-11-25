@@ -70,6 +70,7 @@
                     <ContextMenu>
                         <MenuItem Header="Edit" Command="{Binding OpenEditorCommand}"/>
                         <MenuItem Header="Rename" Click="Rename_Click"/>
+                        <MenuItem Header="Remove" Command="{Binding RemoveDocumentCommand}"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
             </ListView>

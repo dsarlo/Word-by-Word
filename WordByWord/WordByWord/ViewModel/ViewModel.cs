@@ -63,6 +63,7 @@ namespace WordByWord.ViewModel
 
             CreateAddDocumentContextMenu();
 
+            RemoveDocumentCommand = new RelayCommand(RemoveDocument);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
@@ -88,6 +89,8 @@ namespace WordByWord.ViewModel
         }
 
         #region Properties
+        public RelayCommand RemoveDocumentCommand { get; }
+
         public RelayCommand ResetCommand { get; }
 
         public RelayCommand CreateDocFromUserInputCommand { get; }
@@ -590,6 +593,12 @@ namespace WordByWord.ViewModel
 
             _windowService.CloseWindow("Editor", this);
 
+            SaveLibrary();
+        }
+
+        private void RemoveDocument()
+        {
+            Library.Remove(Library.Single(doc => doc.FilePath == SelectedDocument.FilePath));
             SaveLibrary();
         }
 
