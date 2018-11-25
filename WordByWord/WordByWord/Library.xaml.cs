@@ -28,18 +28,6 @@ namespace WordByWord
             }
         }
 
-        private void Rename_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            if (_viewModel.SelectedDocument != null)
-            {
-                OcrDocument listViewDoc = (OcrDocument) LibraryListView.Items[LibraryListView.SelectedIndex];
-                if (!_viewModel.SelectedDocument.IsBusy && listViewDoc.FilePath == _viewModel.SelectedDocument.FilePath)
-                {
-                    _viewModel.SelectedDocument.IsEditingFileName = true;
-                }
-            }
-        }
-
         private void ListViewItem_KeyDown(object sender, KeyEventArgs e)
         {
             if (_viewModel.SelectedDocument != null)

@@ -63,9 +63,10 @@ namespace WordByWord.ViewModel
 
             CreateAddDocumentContextMenu();
 
-            RemoveDocumentCommand = new RelayCommand(RemoveDocument);
+            RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null);
+            RenameDocumentCommand = new RelayCommand(RenameDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
-            OpenEditorCommand = new RelayCommand(OpenEditorWindow);
+            OpenEditorCommand = new RelayCommand(OpenEditorWindow, () => SelectedDocument != null);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
@@ -86,6 +87,16 @@ namespace WordByWord.ViewModel
             StepForwardCommand = new RelayCommand(StepForward);
 
             LoadLibrary();
+        }
+
+        public RelayCommand RenameDocumentCommand { get; }
+
+        private void RenameDocument()
+        {
+            if (!SelectedDocument.IsBusy)
+            {
+                SelectedDocument.IsEditingFileName = true;
+            }
         }
 
         #region Properties
@@ -236,6 +247,9 @@ namespace WordByWord.ViewModel
                 {
                     Set(() => SelectedDocument, ref _selectedDocument, value);
                 }
+                RemoveDocumentCommand.RaiseCanExecuteChanged();
+                OpenEditorCommand.RaiseCanExecuteChanged();
+                RenameDocumentCommand.RaiseCanExecuteChanged();
             }
         }
 
