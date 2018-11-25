@@ -44,7 +44,8 @@
                 Margin="10 5 0 0"
                 HorizontalAlignment="Left" 
                 VerticalAlignment="Top"
-                BorderThickness="0">
+                BorderThickness="0"
+                Command="{Binding GoBackToLibrary}">
             <Rectangle Width="30"
                        Height="30"
                        Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">

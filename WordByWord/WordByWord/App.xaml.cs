@@ -19,8 +19,8 @@ namespace WordByWord
             SimpleIoc.Default.Register<IDialogCoordinator, DialogCoordinator>();
             SimpleIoc.Default.Register<ViewModel.ViewModel>();
 
-            Library library = new Library();
-            library.Show();
+            ServiceLocator.Current.GetInstance<IWindowService>()
+                .ShowWindow("Library", null);
         }
     }
 }

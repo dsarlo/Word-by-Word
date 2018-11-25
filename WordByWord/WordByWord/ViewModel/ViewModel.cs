@@ -63,6 +63,12 @@ namespace WordByWord.ViewModel
 
             CreateAddDocumentContextMenu();
 
+            GoBackToLibrary = new RelayCommand(() =>
+            {
+                _windowService.CloseWindow("Reader");
+                _windowService.ShowWindow("Library", this);
+            });
+
             RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null);
             RenameDocumentCommand = new RelayCommand(RenameDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
@@ -89,17 +95,11 @@ namespace WordByWord.ViewModel
             LoadLibrary();
         }
 
+        #region Properties
+        public RelayCommand GoBackToLibrary { get; }
+
         public RelayCommand RenameDocumentCommand { get; }
 
-        private void RenameDocument()
-        {
-            if (!SelectedDocument.IsBusy)
-            {
-                SelectedDocument.IsEditingFileName = true;
-            }
-        }
-
-        #region Properties
         public RelayCommand RemoveDocumentCommand { get; }
 
         public RelayCommand ResetCommand { get; }
@@ -436,7 +436,7 @@ namespace WordByWord.ViewModel
                     UserInputTitle = string.Empty;
                     UserInputBody = string.Empty;
 
-                    _windowService.CloseWindow("InputText", this);
+                    _windowService.CloseWindow("InputText");
 
                     SaveLibrary();
                 }
@@ -605,7 +605,7 @@ namespace WordByWord.ViewModel
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
 
-            _windowService.CloseWindow("Editor", this);
+            _windowService.CloseWindow("Editor");
 
             SaveLibrary();
         }
@@ -618,7 +618,13 @@ namespace WordByWord.ViewModel
 
         internal void OpenReaderWindow()
         {
+            _windowService.CloseWindow("Library");
             _windowService.ShowWindow("Reader", this);
+        }
+
+        internal void OpenLibraryWindow()
+        {
+            _windowService.ShowWindow("Library", this);
         }
 
         private void OpenEditorWindow()
@@ -629,6 +635,14 @@ namespace WordByWord.ViewModel
         private void AddDocumentContext()
         {
             _addDocumentContext.IsOpen = true;
+        }
+
+        private void RenameDocument()
+        {
+            if (!SelectedDocument.IsBusy)
+            {
+                SelectedDocument.IsEditingFileName = true;
+            }
         }
 
         private void CreateAddDocumentContextMenu()

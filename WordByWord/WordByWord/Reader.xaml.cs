@@ -50,6 +50,7 @@ namespace WordByWord
         private void MetroWindow_Closing(object sender, CancelEventArgs e)
         {
             _viewModel.StopCurrentDocument();
+            _viewModel.OpenLibraryWindow();
         }
     }
 }

@@ -4,7 +4,7 @@ namespace WordByWord.Services
     public interface IWindowService
     {
         void ShowWindow(string window, ViewModel.ViewModel viewModel);
-        void CloseWindow(string window, ViewModel.ViewModel viewModel);
+        void CloseWindow(string window);
     }
 
     public class WindowService : IWindowService
@@ -23,8 +23,11 @@ namespace WordByWord.Services
                     _editor.ShowDialog();
                     break;
                 case "Library":
-                    _library = new Library();
-                    _library.ShowDialog();
+                    if (_library == null)
+                    {
+                        _library = new Library();
+                    }
+                    _library.Show();
                     break;
                 case "Reader":
                     _reader = new Reader(viewModel);
@@ -37,7 +40,7 @@ namespace WordByWord.Services
             }
         }
 
-        public void CloseWindow(string window, ViewModel.ViewModel viewModel)
+        public void CloseWindow(string window)
         {
             switch (window)
             {
@@ -46,8 +49,7 @@ namespace WordByWord.Services
                     _editor = null;
                     break;
                 case "Library":
-                    _library?.Close();
-                    _library = null;
+                    _library?.Hide();
                     break;
                 case "Reader":
                     _reader?.Close();
