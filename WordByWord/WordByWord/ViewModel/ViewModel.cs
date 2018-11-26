@@ -330,7 +330,6 @@ namespace WordByWord.ViewModel
                 if (filePaths.Count > 0)
                 {
                     await RunOcrOnFiles(filePaths);
-                    SaveLibrary();
                 }
             }
         }
@@ -640,6 +639,7 @@ namespace WordByWord.ViewModel
                 {
                     string ocrResult = GetTextFromImage(filePath);
                     Library.Single(doc => doc.FilePath == filePath).OcrText = ocrResult;
+                    SaveLibrary();
                 }
             });
         }
