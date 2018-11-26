@@ -1,5 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 using GalaSoft.MvvmLight;
+using Newtonsoft.Json;
 
 namespace WordByWord.Models
 {
@@ -9,6 +14,8 @@ namespace WordByWord.Models
         private bool _isBusy = true;
         private string _fileName;
         private bool _isEditingFileName;
+        private string _thumbnailPath;
+        private BitmapSource _thumbnail;
 
         public OcrDocument(string filePath)
         {
@@ -47,6 +54,36 @@ namespace WordByWord.Models
             {
                 Set(() => IsEditingFileName, ref _isEditingFileName, value);
             }
+        }
+
+        public string ThumbnailPath
+        {
+            get => _thumbnailPath;
+            set { Set(() => ThumbnailPath, ref _thumbnailPath, value); }
+        }
+
+        [JsonIgnore]
+        public BitmapSource Thumbnail
+        {
+            get
+            {
+                if (_thumbnail == null)
+                {
+                    if (ThumbnailPath == null)
+                    {
+                        BitmapSource thumbnail = Imaging.CreateBitmapSourceFromHBitmap(
+                            Properties.Resources.check.GetHbitmap(), IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromWidthAndHeight(50, 50));
+
+                        _thumbnail = thumbnail;
+                    }
+                    else
+                    {
+                        _thumbnail = new BitmapImage(new Uri(ThumbnailPath));
+                    }
+                }
+                return _thumbnail;
+            }
+            set { Set(() => Thumbnail, ref _thumbnail, value); }
         }
     }
 }

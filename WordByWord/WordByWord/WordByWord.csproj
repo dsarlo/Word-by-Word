@@ -89,6 +89,7 @@
     <Compile Include="Converters\BoolToCollapsedConverter.cs" />
     <Compile Include="Converters\InverseBoolConverter.cs" />
     <Compile Include="Converters\MultiBoolAndConverter.cs" />
+    <Compile Include="Converters\ThumbnailVisibilityConverter.cs" />
     <Compile Include="Editor.xaml.cs">
       <DependentUpon>Editor.xaml</DependentUpon>
     </Compile>
@@ -168,6 +169,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Entypo-license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\check.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using GalaSoft.MvvmLight;
 using System.Collections.ObjectModel;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +21,8 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Text;
 using System.Threading;
+using System.Windows.Interop;
+using System.Windows.Media.Imaging;
 
 namespace WordByWord.ViewModel
 {
@@ -310,7 +315,13 @@ namespace WordByWord.ViewModel
                 {
                     if (Library.All(doc => doc.FilePath != filePath))
                     {
-                        OcrDocument ocrDoc = new OcrDocument(filePath);
+                        System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
+                        Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
+
+                        string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
+                        imageToBitmap.Save(thumbnailPath);
+
+                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = new BitmapImage(new Uri(thumbnailPath)), ThumbnailPath = thumbnailPath };
                         Library.Add(ocrDoc);
                         filePaths.Add(filePath);
                     }
@@ -327,6 +338,38 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Resize the image to the specified width and height.
+        /// </summary>
+        /// <param name="image">The image to resize.</param>
+        /// <param name="width">The width to resize to.</param>
+        /// <param name="height">The height to resize to.</param>
+        /// <returns>The resized image.</returns>
+        public static Bitmap ResizeImage(System.Drawing.Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
+        }
+
         public void LoadSettings()
         {
             WordsPerMinute = Properties.Settings.Default.WPM;
@@ -411,7 +454,7 @@ namespace WordByWord.ViewModel
         {
             if (Directory.Exists(SerializedDataFolderPath))
             {
-                string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).FirstOrDefault();
+                string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).Single(filePath => filePath.EndsWith("library.json"));
                 if (!string.IsNullOrEmpty(serializedLibraryFile))
                 {
                     Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(
