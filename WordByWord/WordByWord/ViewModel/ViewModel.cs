@@ -39,7 +39,7 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
-        private bool _isDarkMode = false;
+        private bool _isDarkMode;
         private int _numberOfGroups = 1;
         private int _wordsPerMinute;
         private int _readerFontSize = 50;
@@ -295,6 +295,17 @@ namespace WordByWord.ViewModel
             }
         }
 
+        public bool IsDarkMode
+        {
+            get => _isDarkMode;
+            set
+            {
+                Set(() => IsDarkMode, ref _isDarkMode, value);
+                Properties.Settings.Default.DarkMode = value;
+                Properties.Settings.Default.Save();
+            }
+        }
+
         #endregion
 
         #region Events
@@ -377,6 +388,7 @@ namespace WordByWord.ViewModel
         public void LoadSettings()
         {
             WordsPerMinute = Properties.Settings.Default.WPM;
+            IsDarkMode = Properties.Settings.Default.DarkMode;
         }
 
         private void Reset()
@@ -436,23 +448,14 @@ namespace WordByWord.ViewModel
 
         private void SwapTheme()
         {
-            if (_isDarkMode)
-            {
-                ThemeManager.ChangeAppStyle(Application.Current,
-                        ThemeManager.GetAccent("Blue"),
-                        ThemeManager.GetAppTheme("BaseLight"));
-                _isDarkMode = false;
-            }
+            _isDarkMode = !_isDarkMode;
+            SetTheme(_isDarkMode);
+        }
 
-            else
-            {
-                ThemeManager.ChangeAppStyle(Application.Current,
-                        ThemeManager.GetAccent("Blue"),
-                        ThemeManager.GetAppTheme("BaseDark"));
-                _isDarkMode = true;
-
-            }
-
+        private void SetTheme(bool darkMode)
+        {
+            ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent("Blue"),
+                darkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
         }
 
         internal void StopCurrentDocument()

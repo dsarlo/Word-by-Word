@@ -13,6 +13,7 @@ namespace WordByWord
     {
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             SimpleIoc.Default.Register<IWindowService, WindowService>();

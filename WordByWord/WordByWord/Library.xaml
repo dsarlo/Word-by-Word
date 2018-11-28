@@ -93,8 +93,20 @@
                         </Rectangle.OpacityMask>
                     </Rectangle>
                     <TextBlock Margin="4 0 0 0"
-                   VerticalAlignment="Center"
-                   Text="dark mode" />
+                   VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
+                                        <Setter Property="Text" Value="light mode" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                        <Setter Property="Text" Value="dark mode" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
             </Button>
         </mah:WindowCommands>
