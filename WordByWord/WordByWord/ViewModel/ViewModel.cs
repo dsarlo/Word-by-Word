@@ -389,6 +389,7 @@ namespace WordByWord.ViewModel
         {
             WordsPerMinute = Properties.Settings.Default.WPM;
             IsDarkMode = Properties.Settings.Default.DarkMode;
+            SetTheme();
         }
 
         private void Reset()
@@ -448,14 +449,14 @@ namespace WordByWord.ViewModel
 
         private void SwapTheme()
         {
-            _isDarkMode = !_isDarkMode;
-            SetTheme(_isDarkMode);
+            IsDarkMode = !IsDarkMode;
+            SetTheme();
         }
 
-        private void SetTheme(bool darkMode)
+        private void SetTheme()
         {
             ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent("Blue"),
-                darkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
+                IsDarkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
         }
 
         internal void StopCurrentDocument()
