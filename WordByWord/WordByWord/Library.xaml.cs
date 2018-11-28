@@ -29,13 +29,19 @@ namespace WordByWord
 
         private void ListViewItem_KeyDown(object sender, KeyEventArgs e)
         {
-            if (_viewModel.SelectedDocument != null)
+            if (_viewModel.SelectedDocument != null && e.Key == Key.Enter && _viewModel.SelectedDocument.IsEditingFileName)
             {
-                if (e.Key == Key.Enter && _viewModel.SelectedDocument.IsEditingFileName)
-                {
-                    _viewModel.SelectedDocument.IsEditingFileName = false;
-                    _viewModel.SaveLibrary();
-                }
+                _viewModel.SelectedDocument.IsEditingFileName = false;
+                _viewModel.SaveLibrary();
+            }
+        }
+
+        private void RenameTextBox_LostFocus(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (_viewModel.SelectedDocument != null && _viewModel.SelectedDocument.IsEditingFileName)
+            {
+                _viewModel.SelectedDocument.IsEditingFileName = false;
+                _viewModel.SaveLibrary();
             }
         }
     }
