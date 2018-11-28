@@ -23,6 +23,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using MahApps.Metro;
 
 namespace WordByWord.ViewModel
 {
@@ -38,6 +39,7 @@ namespace WordByWord.ViewModel
         private string _userInputBody = string.Empty;
         private bool _isBusy;
         private bool _sentenceReadingEnabled;
+        private bool _isDarkMode = false;
         private int _numberOfGroups = 1;
         private int _wordsPerMinute;
         private int _readerFontSize = 50;
@@ -96,6 +98,7 @@ namespace WordByWord.ViewModel
             ResetCommand = new RelayCommand(Reset);
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
+            SwapThemeCommand = new RelayCommand(SwapTheme);
 
             LoadLibrary();
         }
@@ -124,6 +127,8 @@ namespace WordByWord.ViewModel
         public RelayCommand StepBackwardCommand { get; }
 
         public RelayCommand StepForwardCommand { get; }
+
+        public RelayCommand SwapThemeCommand { get; }
 
         public int ReaderDelay
         {
@@ -427,6 +432,27 @@ namespace WordByWord.ViewModel
                     _resumeReading = true;
                 }
             }
+        }
+
+        private void SwapTheme()
+        {
+            if (_isDarkMode)
+            {
+                ThemeManager.ChangeAppStyle(Application.Current,
+                        ThemeManager.GetAccent("Blue"),
+                        ThemeManager.GetAppTheme("BaseLight"));
+                _isDarkMode = false;
+            }
+
+            else
+            {
+                ThemeManager.ChangeAppStyle(Application.Current,
+                        ThemeManager.GetAccent("Blue"),
+                        ThemeManager.GetAppTheme("BaseDark"));
+                _isDarkMode = true;
+
+            }
+
         }
 
         internal void StopCurrentDocument()
