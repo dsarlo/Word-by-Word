@@ -52,5 +52,10 @@ namespace WordByWord
             _viewModel.StopCurrentDocument();
             _viewModel.OpenLibraryWindow();
         }
+
+        private async void WordDisplay_ToolTipOpening(object sender, ToolTipEventArgs e)
+        {
+            await _viewModel.DefineWordAsync();
+        }
     }
 }

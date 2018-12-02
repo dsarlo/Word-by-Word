@@ -23,7 +23,9 @@
         </Storyboard>
         <converters:InverseBoolConverter x:Key="InverseBool" />
         <converters:MultiBoolAndConverter x:Key="MultiBool" />
+        <converters:MultiBoolAndVisibilityConverter x:Key="MultiVisBool" />
         <converters:BoolToCollapsedConverter x:Key="CollapsedVisBool" />
+        <converters:InverseBoolVisibilityConverter x:Key="InverseVis" />
     </Window.Resources>
 
     <Grid>
@@ -62,12 +64,41 @@
                    Margin="0 0 0 87"
                    FontSize="{Binding ReaderFontSize}"
                    Text ="{Binding CurrentWord}"
+                   ToolTipOpening="WordDisplay_ToolTipOpening"
                    TextAlignment="Center"
                    TextWrapping="Wrap"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Bottom"/>
+                   VerticalAlignment="Bottom">
+            <TextBlock.ToolTip>
+                <ToolTip x:Name="DefinitionToolTip"
+                         OverridesDefaultStyle="True"
+                         HasDropShadow="True"
+                         Background="#41b1ff"
+                         BorderThickness="0"
+                         Foreground="White"
+                         FontSize="15" 
+                         MaxWidth="200"
+                         HorizontalOffset="25"
+                         HorizontalContentAlignment="Center">
+                    <ToolTip.Visibility>
+                        <MultiBinding Converter="{StaticResource MultiVisBool}">
+                            <Binding Path="FindingDefinition" Converter="{StaticResource InverseVis}" />
+                            <Binding Path="IsBusy" Converter="{StaticResource InverseVis}"/>
+                            <Binding Path="CurrentDefinition.Length" Converter="{StaticResource InverseVis}"/>
+                        </MultiBinding>
+                    </ToolTip.Visibility>
+                    <TextBlock TextWrapping="Wrap"
+                               MaxWidth="200">
+                        <TextBlock.Inlines>
+                            <Run FontWeight="Bold" Text="Definition:"/>
+                            <Run Text="{Binding CurrentDefinition}"/>
+                        </TextBlock.Inlines>
+                    </TextBlock>
+                </ToolTip>
+            </TextBlock.ToolTip>
+        </TextBlock>
 
-            <StackPanel Grid.Column="1" Grid.Row="0"
+        <StackPanel Grid.Column="1" Grid.Row="0"
                         VerticalAlignment="Bottom"
                         Orientation="Horizontal" 
                         HorizontalAlignment="Center">
@@ -226,7 +257,7 @@
                                     </MultiBinding>
                                 </Slider.IsEnabled>
                             </Slider>
-                            <Label Visibility="{Binding SentenceReadingEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            <Label Visibility="{Binding SentenceReadingEnabled, Converter={StaticResource CollapsedVisBool}}"
                                    Content="Disable sentence reading to modify word grouping." 
                                    HorizontalAlignment="Center" 
                                    Foreground="Red"/>

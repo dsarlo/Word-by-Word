@@ -9,15 +9,15 @@ using System.Windows.Data;
 
 namespace WordByWord.Converters
 {
-    public class MultiBoolAndConverter : IMultiValueConverter
+    public class MultiBoolAndVisibilityConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             foreach (object value in values)
             {
-                if (value is bool && !(bool)value) { return false; }
+                if (value is Visibility && (Visibility)value == Visibility.Hidden) { return Visibility.Hidden; }
             }
-            return true;
+            return Visibility.Visible;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

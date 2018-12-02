@@ -124,5 +124,15 @@ namespace WordByWord.Test
 
             Assert.AreEqual(_viewModel.ReaderDelay, expected); 
         }
+
+        [TestMethod]
+        public async Task DefineWord()
+        {
+            string word = "eggplant";
+            string expectedDef = "A widely cultivated perennial Asian herb (Solanum melongena) of the nightshade family yielding edible fruit";
+            string result = await Dictionary.DefineAsync(word);
+
+            Assert.AreEqual(expectedDef, result);
+        }
     }
 }

@@ -37,7 +37,9 @@ namespace WordByWord.ViewModel
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
+        private string _currentDefinition = string.Empty;
         private bool _isBusy;
+        private bool _findingDefinition;
         private bool _sentenceReadingEnabled;
         private bool _isDarkMode;
         private int _numberOfGroups = 1;
@@ -99,11 +101,11 @@ namespace WordByWord.ViewModel
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
-
             LoadLibrary();
         }
 
         #region Properties
+
         public RelayCommand GoBackToLibrary { get; }
 
         public RelayCommand RenameDocumentCommand { get; }
@@ -214,6 +216,12 @@ namespace WordByWord.ViewModel
 
         }
 
+        public string CurrentDefinition
+        {
+            get => _currentDefinition;
+            set => Set(() => CurrentDefinition, ref _currentDefinition, value);
+        }
+
         public string UserInputTitle
         {
             get => _userInputTitle;
@@ -279,6 +287,12 @@ namespace WordByWord.ViewModel
             {
                 Set(() => IsBusy, ref _isBusy, value);
             }
+        }
+
+        public bool FindingDefinition
+        {
+            get => _findingDefinition;
+            set => Set(() => FindingDefinition, ref _findingDefinition, value);
         }
 
         public bool SentenceReadingEnabled
@@ -353,6 +367,26 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+
+        public async Task DefineWordAsync()
+        {
+            CurrentDefinition = string.Empty;
+
+            if (!IsBusy && NumberOfGroups == 1 && !SentenceReadingEnabled)
+            {
+                FindingDefinition = true;
+
+                CurrentDefinition = await Dictionary.DefineAsync(CurrentWord);
+
+                if (string.IsNullOrEmpty(CurrentDefinition))
+                {
+                    CurrentDefinition = "Could not find the definition :(";
+                }
+
+                FindingDefinition = false;
+            }
+        }
+
         /// <summary>
         /// Resize the image to the specified width and height.
         /// </summary>
@@ -455,8 +489,10 @@ namespace WordByWord.ViewModel
 
         private void SetTheme()
         {
-            ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent("Blue"),
-                IsDarkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
+            // Application.Current is null when tests are running.
+            if (Application.Current != null) 
+                ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent("Blue"),
+                    IsDarkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
         }
 
         internal void StopCurrentDocument()

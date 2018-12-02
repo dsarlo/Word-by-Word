@@ -17,7 +17,7 @@
                 <ResourceDictionary Source="/Resources/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converters:ProgressBarVisibilityConverter x:Key="VisConverter"/>
-            <converters:ThumbnailVisibilityConverter x:Key="InverseVisConverter"/>
+            <converters:InverseBoolVisibilityConverter x:Key="InverseVisConverter"/>
         </ResourceDictionary>
     </Window.Resources>
 
