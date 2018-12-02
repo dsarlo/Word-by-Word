@@ -429,9 +429,12 @@ namespace WordByWord.ViewModel
 
         public void DisplayTimeElapsed()
         {
-            ElapsedTime = _stopWatch.Elapsed;
-            _stopWatch.Stop();
-            DisplayTime = true;
+            if (CheckIfAtEnd())
+            {
+                ElapsedTime = _stopWatch.Elapsed;
+                _stopWatch.Stop();
+                DisplayTime = true;
+            }
         }
 
         public bool CheckIfAtEnd()
