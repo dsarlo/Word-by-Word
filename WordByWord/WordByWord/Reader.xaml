@@ -148,6 +148,14 @@
             </Button>
         </StackPanel>
 
+        <TextBlock x:Name="TimerLabel"
+                   Text="{Binding}"
+                   Grid.Column="1" 
+                   Grid.Row="1"
+                   HorizontalAlignment="Center"
+                   FontSize="22"
+                   />
+
         <StackPanel Grid.Column="2">
             <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                 Grid.Column="2" 
