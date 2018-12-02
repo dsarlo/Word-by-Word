@@ -78,7 +78,13 @@ namespace WordByWord.Models
                     }
                     else
                     {
-                        _thumbnail = new BitmapImage(new Uri(ThumbnailPath));
+                        BitmapImage thumbnail = new BitmapImage();
+                        thumbnail.BeginInit();
+                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                        thumbnail.UriSource = new Uri(ThumbnailPath);
+                        thumbnail.EndInit();
+
+                        _thumbnail = thumbnail;
                     }
                 }
                 return _thumbnail;

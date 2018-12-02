@@ -721,7 +721,13 @@ namespace WordByWord.ViewModel
 
         private void RemoveDocument()
         {
-            Library.Remove(Library.Single(doc => doc.FilePath == SelectedDocument.FilePath));
+            OcrDocument docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
+            Library.Remove(docToRemove);
+            if (File.Exists(docToRemove.ThumbnailPath))
+            {
+                File.SetAttributes(docToRemove.ThumbnailPath, FileAttributes.Normal);
+                File.Delete(docToRemove.ThumbnailPath);
+            }
             SaveLibrary();
         }
 
