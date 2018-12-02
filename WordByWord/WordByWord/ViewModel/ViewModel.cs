@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using System.Text;
 using System.Threading;
-using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using MahApps.Metro;
 
@@ -94,7 +93,7 @@ namespace WordByWord.ViewModel
                     _cSource = new CancellationTokenSource();
                 }
             }, true);
-            
+
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
             PauseReadingCommand = new RelayCommand(() => _cSource.Cancel());
             ResetCommand = new RelayCommand(Reset);
@@ -500,12 +499,15 @@ namespace WordByWord.ViewModel
         {
             IsDarkMode = !IsDarkMode;
             SetTheme();
+
+            //Rebuild the context menu for the add document button so the theme change is applied.
+            CreateAddDocumentContextMenu();
         }
 
         private void SetTheme()
         {
             // Application.Current is null when tests are running.
-            if (Application.Current != null) 
+            if (Application.Current != null)
                 ThemeManager.ChangeAppStyle(Application.Current, ThemeManager.GetAccent("Blue"),
                     IsDarkMode ? ThemeManager.GetAppTheme("BaseDark") : ThemeManager.GetAppTheme("BaseLight"));
         }
@@ -605,7 +607,7 @@ namespace WordByWord.ViewModel
                         await Task.Delay(ReaderDelay);
                     }
 
-                    if (_resumeReading && wordIndex == _wordsToRead.Count-1)
+                    if (_resumeReading && wordIndex == _wordsToRead.Count - 1)
                     {
                         _resumeReading = false;
                     }

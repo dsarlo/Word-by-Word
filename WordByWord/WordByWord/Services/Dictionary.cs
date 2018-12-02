@@ -1,17 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
+﻿using System;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
-using WordByWord.Models;
 
 namespace WordByWord.Services
 {
@@ -22,7 +13,7 @@ namespace WordByWord.Services
             char[] blacklist = "1234567890`~!@#$%^&*()_+-={}[]\\|;:'\",<.>/?".ToCharArray();
             if (blacklist.Contains(word[word.Length - 1]))
             {
-                word = word.Substring(0, word.Length - 2);
+                word = word.Substring(0, word.Length - 1);
             }
 
             string definition = string.Empty;

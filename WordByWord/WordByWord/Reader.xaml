@@ -8,11 +8,12 @@
         xmlns:local="clr-namespace:WordByWord"
         xmlns:converters="clr-namespace:WordByWord.Converters"
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         dialog:DialogParticipation.Register="{Binding}"
         mc:Ignorable="d"
         Title="Reader" Height="650" Width="1000"
         Closing="MetroWindow_Closing">
-    
+
 
     <Window.Resources>
         <Storyboard x:Key="SbShowBottomMenu" >
@@ -48,13 +49,9 @@
                 VerticalAlignment="Top"
                 BorderThickness="0"
                 Command="{Binding GoBackToLibrary}">
-            <Rectangle Width="30"
-                       Height="30"
-                       Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                <Rectangle.OpacityMask>
-                    <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_arrow_left}" />
-                </Rectangle.OpacityMask>
-            </Rectangle>
+
+            <iconPacks:PackIconMaterial Kind="ArrowLeftThick" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
         </Button>
 
         <TextBlock Grid.Column="1"
@@ -107,50 +104,33 @@
                         Width="50" 
                         Height="50" 
                         BorderBrush="Black">
-                <Rectangle Width="20"
-                               Height="20"
-                               Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_previous}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Kind="NavigatePrevious" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
             <Button x:Name="PlayButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}, ConverterParameter=Play}" Command="{Binding ReadSelectedDocumentCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black" >
-                <Rectangle Width="20"
-                               Height="20"
-                               Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_play}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Kind="ControlPlay" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
             <Button x:Name="PauseButton" Visibility="{Binding IsBusy, Converter={StaticResource CollapsedVisBool}}" Command="{Binding PauseReadingCommand}" Style="{DynamicResource MetroCircleButtonStyle}" Width="50" Height="50" BorderBrush="Black">
-                <Rectangle Width="20"
-                               Height="20"
-                               Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_control_pause}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Kind="ControlPause" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
             <Button Style="{DynamicResource MetroCircleButtonStyle}" 
                         Command="{Binding StepForwardCommand}"
                         Width="50" 
                         Height="50" 
                         BorderBrush="Black">
-                <Rectangle Width="20"
-                               Height="20"
-                               Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_navigate_next}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Kind="NavigateNext" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
         </StackPanel>
 
         <StackPanel Grid.Column="2">
             <Button Style="{DynamicResource MetroCircleButtonStyle}" 
-                Grid.Column="2" 
                 Width="50" 
                 Height="50" 
                 Margin="0 5 10 0"
@@ -158,15 +138,11 @@
                 VerticalAlignment="Top"
                 BorderThickness="0"
                     Command="{Binding OpenEditorCommand}">
-                <Rectangle Width="30"
-                           Height="30"
-                           Margin="0 0 5 0"
-                           Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_clipboard_edit}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Margin="-5 0 0 0" Kind="ClipboardVariantEdit" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
+
             <Button Command="{Binding ResetCommand}"
                     Style="{DynamicResource MetroCircleButtonStyle}" 
                     Grid.Column="2" 
@@ -176,13 +152,9 @@
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Top"
                     BorderThickness="0">
-                <Rectangle Width="25"
-                           Height="30"
-                           Fill="{Binding Path=Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Button}}}">
-                    <Rectangle.OpacityMask>
-                        <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_refresh}" />
-                    </Rectangle.OpacityMask>
-                </Rectangle>
+
+                <iconPacks:PackIconModern Kind="Refresh" Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
             </Button>
         </StackPanel>
 
@@ -303,13 +275,9 @@
         <mah:WindowCommands>
             <Button Command="{Binding SwapThemeCommand}">
                 <StackPanel Orientation="Horizontal">
-                    <Rectangle Width="20"
-                   Height="20"
-                   Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
-                        <Rectangle.OpacityMask>
-                            <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_contrast}" />
-                        </Rectangle.OpacityMask>
-                    </Rectangle>
+
+                    <iconPacks:PackIconModern Kind="Contrast" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
                     <TextBlock Margin="4 0 0 0"
                    VerticalAlignment="Center">
                         <TextBlock.Style>
