@@ -147,18 +147,9 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfSentences, ref _numberOfSentences, value);
-                switch (value)
-                {
-                    case 1:
-                        ReaderFontSize = 30;
-                        break;
-                    case 2:
-                        ReaderFontSize = 20;
-                        break;
-                    case 3:
-                        ReaderFontSize = 20;
-                        break;
-                }
+                StopCurrentDocument();
+                CalculateRelayDelay(NumberOfSentences);
+                UpdateSentencesFontSize();
             }
         }
 
@@ -177,29 +168,9 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => NumberOfGroups, ref _numberOfGroups, value);
-
                 StopCurrentDocument();
-
-                CalculateRelayDelay(_numberOfGroups);
-
-                switch (value)
-                {
-                    case 1:
-                        ReaderFontSize = 50;
-                        break;
-                    case 2:
-                        ReaderFontSize = 45;
-                        break;
-                    case 3:
-                        ReaderFontSize = 40;
-                        break;
-                    case 4:
-                        ReaderFontSize = 35;
-                        break;
-                    case 5:
-                        ReaderFontSize = 30;
-                        break;
-                }
+                CalculateRelayDelay(NumberOfGroups);
+                UpdateGroupingFontSize();
             }
         }
 
@@ -301,10 +272,16 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => SentenceReadingEnabled, ref _sentenceReadingEnabled, value);
-                CurrentWord = string.Empty;
-                if (value)
+                StopCurrentDocument();
+                if (!value)
                 {
-                    ReaderFontSize = 30;
+                    CalculateRelayDelay(NumberOfGroups);
+                    UpdateGroupingFontSize();
+                }
+                else
+                {
+                    CalculateRelayDelay(NumberOfSentences);
+                    UpdateSentencesFontSize();
                 }
             }
         }
@@ -367,6 +344,44 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+
+        private void UpdateSentencesFontSize()
+        {
+            switch (NumberOfSentences)
+            {
+                case 1:
+                    ReaderFontSize = 30;
+                    break;
+                case 2:
+                    ReaderFontSize = 20;
+                    break;
+                case 3:
+                    ReaderFontSize = 20;
+                    break;
+            }
+        }
+
+        private void UpdateGroupingFontSize()
+        {
+            switch (NumberOfGroups)
+            {
+                case 1:
+                    ReaderFontSize = 50;
+                    break;
+                case 2:
+                    ReaderFontSize = 45;
+                    break;
+                case 3:
+                    ReaderFontSize = 40;
+                    break;
+                case 4:
+                    ReaderFontSize = 35;
+                    break;
+                case 5:
+                    ReaderFontSize = 30;
+                    break;
+            }
+        }
 
         public async Task DefineWordAsync()
         {
