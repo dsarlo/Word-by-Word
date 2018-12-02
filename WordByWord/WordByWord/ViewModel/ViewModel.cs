@@ -31,8 +31,8 @@ namespace WordByWord.ViewModel
     {
         private string _editorText = string.Empty;
         private OcrDocument _selectedDocument;
-        private Stopwatch _stopWatch = new Stopwatch();
-        private TimeSpan _elapsedTime = new TimeSpan();
+        private readonly Stopwatch _stopWatch = new Stopwatch();
+        private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
@@ -427,14 +427,11 @@ namespace WordByWord.ViewModel
             }
         }
 
-        public void CheckIfDoneReading()
+        public void DisplayTimeElapsed()
         {
-            if (CheckIfAtEnd())
-            {
-                ElapsedTime = _stopWatch.Elapsed;
-                _stopWatch.Stop();
-                DisplayTime = true;
-            }
+            ElapsedTime = _stopWatch.Elapsed;
+            _stopWatch.Stop();
+            DisplayTime = true;
         }
 
         public bool CheckIfAtEnd()
@@ -687,11 +684,10 @@ namespace WordByWord.ViewModel
                         {
                             _resumeReading = true;
                         }
-
                         break;
                     }
-                    CheckIfDoneReading();
                 }
+                DisplayTimeElapsed();
                 IsBusy = false;
             }
         }
@@ -726,11 +722,10 @@ namespace WordByWord.ViewModel
                         {
                             _resumeReading = true;
                         }
-
                         break;
                     }
-                    CheckIfDoneReading();
                 }
+                DisplayTimeElapsed();
                 IsBusy = false;
 
             }
