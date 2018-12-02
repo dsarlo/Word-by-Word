@@ -78,10 +78,10 @@ namespace WordByWord.ViewModel
                 _windowService.ShowWindow("Library", this);
             });
 
-            RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null);
+            RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             RenameDocumentCommand = new RelayCommand(RenameDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
-            OpenEditorCommand = new RelayCommand(OpenEditorWindow, () => SelectedDocument != null);
+            OpenEditorCommand = new RelayCommand(OpenEditorWindow, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
@@ -261,7 +261,7 @@ namespace WordByWord.ViewModel
                 {
                     Set(() => SelectedDocument, ref _selectedDocument, null);
                 }
-                else if (!value.IsBusy)
+                else
                 {
                     Set(() => SelectedDocument, ref _selectedDocument, value);
                 }

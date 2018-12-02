@@ -21,7 +21,7 @@ namespace WordByWord
 
         private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (_viewModel.SelectedDocument != null)
+            if (_viewModel.SelectedDocument != null && !_viewModel.SelectedDocument.IsBusy)
             {
                 _viewModel.OpenReaderWindow();
             }
