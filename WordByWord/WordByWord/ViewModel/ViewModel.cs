@@ -24,6 +24,7 @@ using System.Threading;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using MahApps.Metro;
+using System.Diagnostics;
 
 namespace WordByWord.ViewModel
 {
@@ -31,6 +32,8 @@ namespace WordByWord.ViewModel
     {
         private string _editorText = string.Empty;
         private OcrDocument _selectedDocument;
+        private Stopwatch _stopWatch = new Stopwatch();
+        private TimeSpan _elapsedTime = new TimeSpan();
         private readonly object _libraryLock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
@@ -50,6 +53,7 @@ namespace WordByWord.ViewModel
         private int _currentWordIndex;
         private int _currentSentenceIndex;
         private bool _resumeReading;
+        private bool _displayTime;
         private List<string> _wordsToRead;
         private List<string> _sentencesToRead;
 
@@ -94,9 +98,19 @@ namespace WordByWord.ViewModel
                     _cSource = new CancellationTokenSource();
                 }
             }, true);
-            
+
             CreateDocFromUserInputCommand = new RelayCommand(CreateDocFromUserInput);
-            PauseReadingCommand = new RelayCommand(() => _cSource.Cancel());
+            PauseReadingCommand = new RelayCommand(() =>
+            {
+                _cSource.Cancel();
+                if (CheckIfAtEnd())
+                {
+                    ElapsedTime = _stopWatch.Elapsed;
+                    DisplayTime = true;
+                }
+                _stopWatch.Stop();
+            });
+            
             ResetCommand = new RelayCommand(Reset);
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
@@ -131,6 +145,24 @@ namespace WordByWord.ViewModel
         public RelayCommand StepForwardCommand { get; }
 
         public RelayCommand SwapThemeCommand { get; }
+
+        public TimeSpan ElapsedTime
+        {
+            get => _elapsedTime;
+            set
+            {
+                Set(() => ElapsedTime, ref _elapsedTime, value);
+            }
+        }
+               
+        public bool DisplayTime
+        {
+            get => _displayTime;
+            set
+            {
+                Set(() => DisplayTime, ref _displayTime, value);
+            }
+        }
 
         public int ReaderDelay
         {
@@ -368,6 +400,41 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
+        public void StartStopWatch()
+        {
+            if (CheckIfAtEnd() || CheckIfAtBeginning())
+            {
+                _stopWatch.Restart();
+                DisplayTime = false;
+            }
+            else
+            {
+                _stopWatch.Start();
+            }
+        }
+
+        public void CheckIfDoneReading()
+        {
+            if (CheckIfAtEnd())
+            {
+                ElapsedTime = _stopWatch.Elapsed;
+                _stopWatch.Stop();
+                DisplayTime = true;
+            }
+        } 
+
+        public bool CheckIfAtEnd()
+        {
+            return (SentenceReadingEnabled && _currentSentenceIndex == _sentencesToRead?.Count - 1)
+              || (!SentenceReadingEnabled && _currentWordIndex == _wordsToRead?.Count - 1);
+        }
+
+        public bool CheckIfAtBeginning()
+        {
+            return (SentenceReadingEnabled && _currentSentenceIndex == 0)
+              || (!SentenceReadingEnabled && _currentWordIndex == 0);
+        }
+
         public async Task DefineWordAsync()
         {
             CurrentDefinition = string.Empty;
@@ -502,7 +569,9 @@ namespace WordByWord.ViewModel
             _cSource = new CancellationTokenSource();
             _resumeReading = false;
             _currentWordIndex = 0;
+            _stopWatch.Reset();
             CurrentWord = string.Empty;
+            DisplayTime = false;
         }
 
         public void SaveLibrary()
@@ -579,7 +648,7 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 _wordsToRead = await SplitIntoGroups();
-
+                StartStopWatch();
                 for (int wordIndex = _resumeReading ? _currentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
                     _currentWordIndex = wordIndex;
@@ -604,6 +673,7 @@ namespace WordByWord.ViewModel
 
                         break;
                     }
+                    CheckIfDoneReading();
                 }
                 IsBusy = false;
             }
@@ -615,7 +685,7 @@ namespace WordByWord.ViewModel
             {
                 // Split on regex to preserve chars we split on.
                 _sentencesToRead = await SplitIntoSentences();
-
+                StartStopWatch();
                 for (int sentenceIndex = _resumeReading ? _currentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
                     _currentSentenceIndex = sentenceIndex;
@@ -642,6 +712,7 @@ namespace WordByWord.ViewModel
 
                         break;
                     }
+                    CheckIfDoneReading();
                 }
                 IsBusy = false;
 

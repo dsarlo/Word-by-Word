@@ -149,12 +149,18 @@
         </StackPanel>
 
         <TextBlock x:Name="TimerLabel"
-                   Text="{Binding}"
+                   Visibility="{Binding DisplayTime, Converter={StaticResource CollapsedVisBool}}"
+                   Margin="0 12 0 0"
                    Grid.Column="1" 
                    Grid.Row="1"
                    HorizontalAlignment="Center"
-                   FontSize="22"
-                   />
+                   FontSize="22">
+            <TextBlock.Inlines>
+                <Run Text="You finished in:" />
+                <Run Text="{Binding ElapsedTime, StringFormat={}{0:m' minute(s) and'\\ s\\.f' second(s).'}}" />
+            </TextBlock.Inlines>
+        </TextBlock>
+                   
 
         <StackPanel Grid.Column="2">
             <Button Style="{DynamicResource MetroCircleButtonStyle}" 
