@@ -412,6 +412,7 @@ namespace WordByWord.ViewModel
                     ReaderFontSize = 30;
                     break;
             }
+        }
 
         public void StartStopWatch()
         {
