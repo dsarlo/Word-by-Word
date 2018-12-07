@@ -359,7 +359,13 @@ namespace WordByWord.ViewModel
                         string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
                         imageToBitmap.Save(thumbnailPath);
 
-                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = new BitmapImage(new Uri(thumbnailPath)), ThumbnailPath = thumbnailPath };
+                        BitmapImage thumbnail = new BitmapImage();
+                        thumbnail.BeginInit();
+                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                        thumbnail.UriSource = new Uri(thumbnailPath);
+                        thumbnail.EndInit();
+
+                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
                         Library.Add(ocrDoc);
                         filePaths.Add(filePath);
                     }
