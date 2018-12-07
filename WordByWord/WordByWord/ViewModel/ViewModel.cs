@@ -288,6 +288,9 @@ namespace WordByWord.ViewModel
             set
             {
                 Set(() => IsBusy, ref _isBusy, value);
+                RemoveDocumentCommand.RaiseCanExecuteChanged();
+                OpenEditorCommand.RaiseCanExecuteChanged();
+                RenameDocumentCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -348,6 +351,7 @@ namespace WordByWord.ViewModel
 
             if (openFileDialog.ShowDialog() == true)
             {
+                IsBusy = true;
                 List<string> filePaths = new List<string>();
                 foreach (string filePath in openFileDialog.FileNames)
                 {
@@ -375,6 +379,7 @@ namespace WordByWord.ViewModel
                 {
                     await RunOcrOnFiles(filePaths);
                 }
+                IsBusy = false;
             }
         }
 
