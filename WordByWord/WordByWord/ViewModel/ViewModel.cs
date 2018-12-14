@@ -123,25 +123,6 @@ namespace WordByWord.ViewModel
             LoadLibrary();
         }
 
-        private void InstantiateCloudVisionClient()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-
-            //This must match the service account json file in resources folder!
-            var resourceName = "WordByWord.Resources.Word-by-Word-Google-Service-Account.json";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string serviceAccountJson = reader.ReadToEnd();
-
-                var credential = GoogleCredential.FromJson(serviceAccountJson).CreateScoped(ImageAnnotatorClient.DefaultScopes);
-                var channel = new Grpc.Core.Channel(ImageAnnotatorClient.DefaultEndpoint.ToString(), credential.ToChannelCredentials());
-                // Instantiates the vision client
-                _cloudVisionClient = ImageAnnotatorClient.Create(channel);
-            }
-        }
-
         #region Properties
 
         public RelayCommand GoBackToLibrary { get; }
@@ -406,6 +387,25 @@ namespace WordByWord.ViewModel
         #endregion
 
         #region Methods
+
+        private void InstantiateCloudVisionClient()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            //This must match the service account json file in resources folder!
+            var resourceName = "WordByWord.Resources.Word-by-Word-Google-Service-Account.json";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string serviceAccountJson = reader.ReadToEnd();
+
+                var credential = GoogleCredential.FromJson(serviceAccountJson).CreateScoped(ImageAnnotatorClient.DefaultScopes);
+                var channel = new Grpc.Core.Channel(ImageAnnotatorClient.DefaultEndpoint.ToString(), credential.ToChannelCredentials());
+                // Instantiates the vision client
+                _cloudVisionClient = ImageAnnotatorClient.Create(channel);
+            }
+        }
 
         private void UpdateSentencesFontSize()
         {
