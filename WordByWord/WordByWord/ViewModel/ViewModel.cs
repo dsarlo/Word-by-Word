@@ -12,7 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using GalaSoft.MvvmLight.Command;
-using IronOcr;
 using Microsoft.Win32;
 using WordByWord.Models;
 using MahApps.Metro.Controls.Dialogs;
@@ -24,6 +23,10 @@ using System.Threading;
 using System.Windows.Media.Imaging;
 using MahApps.Metro;
 using System.Diagnostics;
+using Google.Cloud.Vision.V1;
+using Google.Apis.Auth.OAuth2;
+using Grpc.Auth;
+using System.Reflection;
 
 namespace WordByWord.ViewModel
 {
@@ -63,9 +66,12 @@ namespace WordByWord.ViewModel
 
         private readonly IDialogCoordinator _dialogService;
         private readonly IWindowService _windowService;
+        private ImageAnnotatorClient _cloudVisionClient;
 
         public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
         {
+            InstantiateCloudVisionClient();
+
             LoadSettings();
 
             _dialogService = dialogService;
@@ -115,6 +121,25 @@ namespace WordByWord.ViewModel
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
             LoadLibrary();
+        }
+
+        private void InstantiateCloudVisionClient()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            //This must match the service account json file in resources folder!
+            var resourceName = "WordByWord.Resources.Word-by-Word-Google-Service-Account.json";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string serviceAccountJson = reader.ReadToEnd();
+
+                var credential = GoogleCredential.FromJson(serviceAccountJson).CreateScoped(ImageAnnotatorClient.DefaultScopes);
+                var channel = new Grpc.Core.Channel(ImageAnnotatorClient.DefaultEndpoint.ToString(), credential.ToChannelCredentials());
+                // Instantiates the vision client
+                _cloudVisionClient = ImageAnnotatorClient.Create(channel);
+            }
         }
 
         #region Properties
@@ -874,21 +899,9 @@ namespace WordByWord.ViewModel
 
         public string GetTextFromImage(string filePath)
         {
-            AdvancedOcr ocr = new AdvancedOcr
-            {
-                CleanBackgroundNoise = true,
-                EnhanceContrast = true,
-                EnhanceResolution = true,
-                Language = IronOcr.Languages.English.OcrLanguagePack,
-                Strategy = AdvancedOcr.OcrStrategy.Advanced,
-                ColorSpace = AdvancedOcr.OcrColorSpace.GrayScale,
-                DetectWhiteTextOnDarkBackgrounds = true,
-                InputImageType = AdvancedOcr.InputTypes.AutoDetect,
-                RotateAndStraighten = true,
-                ColorDepth = 4
-            };
-
-            return ocr.Read(filePath).Text;
+            var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
+            var response = _cloudVisionClient.DetectText(image);
+            return response[0].Description;
         }
 
         #endregion
