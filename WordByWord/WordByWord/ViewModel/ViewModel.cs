@@ -98,9 +98,26 @@ namespace WordByWord.ViewModel
                 {
                     CancellationToken ctoken = _cSource.Token;
 
-                    await ReadSelectedDocument(ctoken);
-                    _cSource.Dispose();
-                    _cSource = new CancellationTokenSource();
+                    try
+                    {
+                        await ReadSelectedDocument(ctoken);
+                    }
+                    catch(TaskCanceledException e)//Reader has been paused
+                    {
+                        if (_currentWord != string.Empty)
+                        {
+                            _resumeReading = true;
+                        }
+                        DisplayTimeElapsed();//If they paused at the end
+                        IsBusy = false;
+
+                        //Todo add logging for exception e
+                    }
+                    finally
+                    {
+                        _cSource.Dispose();
+                        _cSource = new CancellationTokenSource();
+                    }
                 }
             }, true);
 
@@ -709,21 +726,12 @@ namespace WordByWord.ViewModel
                     if (!string.IsNullOrWhiteSpace(word))
                     {
                         CurrentWord = word;
-                        await Task.Delay(ReaderDelay);
+                        await Task.Delay(ReaderDelay, ctoken);
                     }
 
                     if (_resumeReading && wordIndex == _wordsToRead.Count - 1)
                     {
                         _resumeReading = false;
-                    }
-
-                    if (ctoken.IsCancellationRequested && wordIndex != _wordsToRead.Count - 1)
-                    {
-                        if (_currentWord != string.Empty)
-                        {
-                            _resumeReading = true;
-                        }
-                        break;
                     }
                 }
                 DisplayTimeElapsed();
@@ -747,26 +755,16 @@ namespace WordByWord.ViewModel
                         CurrentWord = sentence;
                         string[] words = sentence.Split(' ');
                         CalculateRelayDelay(words.Length);
-                        await Task.Delay(ReaderDelay);
+                        await Task.Delay(ReaderDelay, ctoken);
                     }
 
                     if (_resumeReading && sentenceIndex == _sentencesToRead.Count - 1)
                     {
                         _resumeReading = false;
                     }
-
-                    if (ctoken.IsCancellationRequested && sentenceIndex != _sentencesToRead.Count - 1)
-                    {
-                        if (_currentWord != string.Empty)
-                        {
-                            _resumeReading = true;
-                        }
-                        break;
-                    }
                 }
                 DisplayTimeElapsed();
                 IsBusy = false;
-
             }
         }
 
@@ -906,7 +904,7 @@ namespace WordByWord.ViewModel
         {
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
             var response = _cloudVisionClient.DetectText(image);
-            return response[0].Description;
+            return response[0].Description ?? "No text found!";
         }
 
         #endregion
