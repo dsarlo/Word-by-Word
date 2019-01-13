@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Input;
 using CommonServiceLocator;
 using MahApps.Metro.Controls;
@@ -43,6 +44,14 @@ namespace WordByWord
                 _viewModel.SelectedDocument.IsEditingFileName = false;
                 _viewModel.SaveLibrary();
             }
+        }
+
+        private void LibraryListView_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            string[] filesDroppedIn = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            //Todo Check the files against our whitelist to ensure that only supported file types are sent through.
+
+            _viewModel.ImportFilesToLibrary(filesDroppedIn);
         }
     }
 }

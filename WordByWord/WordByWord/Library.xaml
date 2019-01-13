@@ -40,7 +40,7 @@
 
             </Button>
 
-            <ListView x:Name="LibraryListView" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
+            <ListView x:Name="LibraryListView" Drop="LibraryListView_Drop" AllowDrop="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>

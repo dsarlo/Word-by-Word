@@ -133,7 +133,7 @@ namespace WordByWord.ViewModel
                 _stopWatch.Stop();
             });
 
-            ResetCommand = new RelayCommand(Reset);
+            ResetCommand = new RelayCommand(StopCurrentDocument);
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
@@ -363,7 +363,7 @@ namespace WordByWord.ViewModel
             _windowService.ShowWindow("InputText", this);
         }
 
-        private async void UploadImage_Click(object sender, RoutedEventArgs e)
+        private void UploadImage_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
@@ -374,41 +374,46 @@ namespace WordByWord.ViewModel
 
             if (openFileDialog.ShowDialog() == true)
             {
-                IsBusy = true;
-                List<string> filePaths = new List<string>();
-                foreach (string filePath in openFileDialog.FileNames)
-                {
-                    if (Library.All(doc => doc.FilePath != filePath))
-                    {
-                        System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
-                        Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
-
-                        string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
-                        imageToBitmap.Save(thumbnailPath);
-
-                        BitmapImage thumbnail = new BitmapImage();
-                        thumbnail.BeginInit();
-                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
-                        thumbnail.UriSource = new Uri(thumbnailPath);
-                        thumbnail.EndInit();
-
-                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
-                        Library.Add(ocrDoc);
-                        filePaths.Add(filePath);
-                    }
-                }
-
-                if (filePaths.Count > 0)
-                {
-                    await RunOcrOnFiles(filePaths);
-                }
-                IsBusy = false;
+                ImportFilesToLibrary(openFileDialog.FileNames);
             }
         }
 
         #endregion
 
         #region Methods
+
+        public async void ImportFilesToLibrary(string[] fileNames)
+        {
+            IsBusy = true;
+            List<string> filePaths = new List<string>();
+            foreach (string filePath in fileNames)
+            {
+                if (Library.All(doc => doc.FilePath != filePath))
+                {
+                    System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
+                    Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
+
+                    string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
+                    imageToBitmap.Save(thumbnailPath);
+
+                    BitmapImage thumbnail = new BitmapImage();
+                    thumbnail.BeginInit();
+                    thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                    thumbnail.UriSource = new Uri(thumbnailPath);
+                    thumbnail.EndInit();
+
+                    OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
+                    Library.Add(ocrDoc);
+                    filePaths.Add(filePath);
+                }
+            }
+
+            if (filePaths.Count > 0)
+            {
+                await RunOcrOnFiles(filePaths);
+            }
+            IsBusy = false;
+        }
 
         private void InstantiateCloudVisionClient()
         {
@@ -558,11 +563,6 @@ namespace WordByWord.ViewModel
             WordsPerMinute = Properties.Settings.Default.WPM;
             IsDarkMode = Properties.Settings.Default.DarkMode;
             SetTheme();
-        }
-
-        private void Reset()
-        {
-            StopCurrentDocument();
         }
 
         private void StepBackward()
@@ -902,9 +902,16 @@ namespace WordByWord.ViewModel
 
         public string GetTextFromImage(string filePath)
         {
+            string result = "No text found!";
+
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
             var response = _cloudVisionClient.DetectText(image);
-            return response[0].Description ?? "No text found!";
+
+            if (response.Any())
+            {
+                result = response[0].Description ?? "No text found!";
+            }
+            return result;
         }
 
         #endregion
