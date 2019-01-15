@@ -32,6 +32,8 @@ namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
+        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg" };
+
         private string _editorText = string.Empty;
         private OcrDocument _selectedDocument;
         private readonly Stopwatch _stopWatch = new Stopwatch();
@@ -137,6 +139,7 @@ namespace WordByWord.ViewModel
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
+
             LoadLibrary();
         }
 
@@ -382,37 +385,60 @@ namespace WordByWord.ViewModel
 
         #region Methods
 
+        private bool IsEachFileSupported(string[] fileNames)
+        {
+            bool eachFileIsSupported = true;
+
+            foreach(string fileName in fileNames)
+            {
+                eachFileIsSupported = _fileTypeWhitelist.Contains(Path.GetExtension(fileName).ToLower());
+
+                if (!eachFileIsSupported) break;
+            }
+
+            return eachFileIsSupported;
+        }
+
         public async void ImportFilesToLibrary(string[] fileNames)
         {
-            IsBusy = true;
-            List<string> filePaths = new List<string>();
-            foreach (string filePath in fileNames)
+            if (fileNames.Length < 25 && IsEachFileSupported(fileNames))
             {
-                if (Library.All(doc => doc.FilePath != filePath))
+                IsBusy = true;
+                List<string> filePaths = new List<string>();
+                foreach (string filePath in fileNames)
                 {
-                    System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
-                    Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
+                    if (Library.All(doc => doc.FilePath != filePath))
+                    {
+                        System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
+                        Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
 
-                    string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
-                    imageToBitmap.Save(thumbnailPath);
+                        string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
+                        imageToBitmap.Save(thumbnailPath);
 
-                    BitmapImage thumbnail = new BitmapImage();
-                    thumbnail.BeginInit();
-                    thumbnail.CacheOption = BitmapCacheOption.OnLoad;
-                    thumbnail.UriSource = new Uri(thumbnailPath);
-                    thumbnail.EndInit();
+                        BitmapImage thumbnail = new BitmapImage();
+                        thumbnail.BeginInit();
+                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                        thumbnail.UriSource = new Uri(thumbnailPath);
+                        thumbnail.EndInit();
 
-                    OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
-                    Library.Add(ocrDoc);
-                    filePaths.Add(filePath);
+                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
+                        Library.Add(ocrDoc);
+                        filePaths.Add(filePath);
+                    }
                 }
-            }
 
-            if (filePaths.Count > 0)
-            {
-                await RunOcrOnFiles(filePaths);
+                if (filePaths.Count > 0)
+                {
+                    await RunOcrOnFiles(filePaths);
+                }
+                IsBusy = false;
             }
-            IsBusy = false;
+            else
+            {
+                //Todo Not sure how much I like the language here.
+                _dialogService.ShowModalMessageExternal(this, "Too many files",
+                    "You tried importing more than 25 files at once.\nPlease try again.");
+            }
         }
 
         private void InstantiateCloudVisionClient()
@@ -890,7 +916,7 @@ namespace WordByWord.ViewModel
             };
             MenuItem uploadImage = new MenuItem
             {
-                Header = "Upload image...",
+                Header = "Upload image(s)...",
             };
 
             inputText.Click += InputText_Click;
@@ -902,6 +928,7 @@ namespace WordByWord.ViewModel
 
         public string GetTextFromImage(string filePath)
         {
+            //Todo we need to add a timeout and notification for when the user doesn't have internet connection.
             string result = "No text found!";
 
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);

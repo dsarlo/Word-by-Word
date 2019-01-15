@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
 using MahApps.Metro.Controls.Dialogs;
@@ -32,6 +35,31 @@ namespace WordByWord.Test
         {
             string ocrResult = _viewModel.GetTextFromImage(@"TestFiles\LockeEssay.PNG");
             Assert.IsTrue(ocrResult.Length > 0);
+        }
+
+        [TestMethod]
+        public void FileImportTest()
+        {
+            //Reset for next test
+            _viewModel.Library = new ObservableCollection<OcrDocument>();
+
+            string[] tooManyTestFiles = new string[25];
+            _viewModel.ImportFilesToLibrary(tooManyTestFiles);
+            Assert.IsTrue(_viewModel.Library.Count == 0);
+
+            //Reset for next test
+            _viewModel.Library = new ObservableCollection<OcrDocument>();
+
+            string[] goodTestFile = { @"TestFiles\LockeEssay.PNG" };
+            _viewModel.ImportFilesToLibrary(goodTestFile);
+            Assert.IsTrue(_viewModel.Library.Count == 1);
+
+            //Reset for next test
+            _viewModel.Library = new ObservableCollection<OcrDocument>();
+
+            string[] badTestFile = { @"TestFiles\library.json" };
+            _viewModel.ImportFilesToLibrary(badTestFile);
+            Assert.IsTrue(_viewModel.Library.Count == 0);
         }
 
         [TestMethod]

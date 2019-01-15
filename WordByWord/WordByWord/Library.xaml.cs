@@ -49,8 +49,7 @@ namespace WordByWord
         private void LibraryListView_Drop(object sender, System.Windows.DragEventArgs e)
         {
             string[] filesDroppedIn = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            //Todo Check the files against our whitelist to ensure that only supported file types are sent through.
-
+            
             _viewModel.ImportFilesToLibrary(filesDroppedIn);
         }
     }
