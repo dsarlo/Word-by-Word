@@ -1,0 +1,34 @@
+﻿<mah:MetroWindow x:Class="WordByWord.Info"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+                 xmlns:local="clr-namespace:WordByWord"
+                 xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+                 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+                 dialog:DialogParticipation.Register="{Binding}"
+                 mc:Ignorable="d"
+                 Title="Info" Height="400" Width="400">
+    <DockPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="2*" />
+            </Grid.RowDefinitions>
+            <Image Source="/Resources/wwlogotemp.png" Margin="0 15 0 0" />
+            <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                <TextBlock Text="Word by Word" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" />
+                <TextBlock Text="Version 1.0" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" />
+                <TextBlock Text="© 2019 CD³ All Rights Reserved" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="Word by Word is our speed reading application that is designed to help people increase the rate at which they can read text and documents. Text can be input by the user manually or through image-to-text recognition." FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2" Margin="15 0" TextWrapping="Wrap"/>
+            <StackPanel Grid.Row="3" VerticalAlignment="Center">
+                <TextBlock Text="Created by CD³" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
+                <TextBlock Text="Christian Coffey, Daniel Goings, Daniel Sarlo and Doug Achkar" FontWeight="Bold" FontSize="12" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</mah:MetroWindow>

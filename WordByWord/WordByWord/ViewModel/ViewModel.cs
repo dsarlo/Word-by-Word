@@ -91,6 +91,7 @@ namespace WordByWord.ViewModel
             RenameDocumentCommand = new RelayCommand(RenameDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow, () => SelectedDocument != null && !SelectedDocument.IsBusy);
+            OpenInfoCommand = new RelayCommand(OpenInfoWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
@@ -157,6 +158,8 @@ namespace WordByWord.ViewModel
         public RelayCommand ConfirmEditCommand { get; }
 
         public RelayCommand OpenEditorCommand { get; }
+
+        public RelayCommand OpenInfoCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
 
@@ -865,6 +868,11 @@ namespace WordByWord.ViewModel
         private void OpenEditorWindow()
         {
             _windowService.ShowWindow("Editor", this);
+        }
+
+        private void OpenInfoWindow()
+        {
+            _windowService.ShowWindow("Info", this);
         }
 
         private void AddDocumentContext()
