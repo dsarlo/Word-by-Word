@@ -27,6 +27,7 @@ using Google.Cloud.Vision.V1;
 using Google.Apis.Auth.OAuth2;
 using Grpc.Auth;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 namespace WordByWord.ViewModel
 {
@@ -70,8 +71,11 @@ namespace WordByWord.ViewModel
         private readonly IWindowService _windowService;
         private ImageAnnotatorClient _cloudVisionClient;
 
-        public ViewModel(IDialogCoordinator dialogService, IWindowService windowService)
+        public ViewModel(IDialogCoordinator dialogService, IWindowService windowService, ILoggerFactory loggerFactory)
         {
+            Logger = loggerFactory.CreateLogger<ViewModel>();
+            Logger.LogDebug("View model started");
+
             InstantiateCloudVisionClient();
 
             LoadSettings();
@@ -170,6 +174,8 @@ namespace WordByWord.ViewModel
         public RelayCommand StepForwardCommand { get; }
 
         public RelayCommand SwapThemeCommand { get; }
+
+        public ILogger Logger { get; private set; }
 
         public TimeSpan ElapsedTime
         {
@@ -443,6 +449,8 @@ namespace WordByWord.ViewModel
 
         private void InstantiateCloudVisionClient()
         {
+            Logger.LogDebug("Initializing cloud vision client");
+
             var assembly = Assembly.GetExecutingAssembly();
 
             //This must match the service account json file in resources folder!
@@ -586,6 +594,8 @@ namespace WordByWord.ViewModel
 
         public void LoadSettings()
         {
+            Logger.LogDebug("Loading user settings");
+
             WordsPerMinute = Properties.Settings.Default.WPM;
             IsDarkMode = Properties.Settings.Default.DarkMode;
             SetTheme();
@@ -672,6 +682,8 @@ namespace WordByWord.ViewModel
 
         public void SaveLibrary()
         {
+            Logger.LogDebug("Saving library");
+
             if (!Directory.Exists(SerializedDataFolderPath))
             {
                 Directory.CreateDirectory(SerializedDataFolderPath);
@@ -682,6 +694,8 @@ namespace WordByWord.ViewModel
 
         public void LoadLibrary()
         {
+            Logger.LogDebug("Loading library");
+
             if (Directory.Exists(SerializedDataFolderPath))
             {
                 string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).Single(filePath => filePath.EndsWith("library.json"));
@@ -695,6 +709,8 @@ namespace WordByWord.ViewModel
 
         private void CreateDocFromUserInput()
         {
+            Logger.LogDebug("Creating document from user input");
+
             if (!string.IsNullOrEmpty(UserInputTitle))
             {
                 if (Library.All(doc => doc.FileName != UserInputTitle))
@@ -928,6 +944,8 @@ namespace WordByWord.ViewModel
 
         public string GetTextFromImage(string filePath)
         {
+            Logger.LogDebug("Applying OCR to image file");
+            
             //Todo we need to add a timeout and notification for when the user doesn't have internet connection.
             string result = "No text found!";
 
