@@ -137,6 +137,17 @@ namespace WordByWord.ViewModel
                     DisplayTime = true;
                 }
                 _stopWatch.Stop();
+                if (SentenceReadingEnabled)
+                {
+                    SelectedDocument.CurrentSentenceIndex = _currentSentenceIndex;
+                }
+                else
+                {
+                    SelectedDocument.CurrentWordIndex = _currentWordIndex;
+                }
+
+                SaveLibrary();
+              
             });
 
             ResetCommand = new RelayCommand(StopCurrentDocument);
