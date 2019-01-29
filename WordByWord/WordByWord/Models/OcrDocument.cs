@@ -16,8 +16,8 @@ namespace WordByWord.Models
         private bool _isEditingFileName;
         private string _thumbnailPath;
         private BitmapSource _thumbnail;
-        private int _currentWordIndex = 0;
-        private int _currentSentenceIndex = 0;
+        private int _currentWordIndex;
+        private int _currentSentenceIndex;
 
         public OcrDocument(string filePath)
         {
@@ -40,6 +40,7 @@ namespace WordByWord.Models
         }
 
         public int CurrentSentenceIndex
+        {
             get => _currentSentenceIndex;
             set { Set(() => CurrentSentenceIndex, ref _currentSentenceIndex, value); }
         } 

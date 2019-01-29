@@ -106,6 +106,12 @@ namespace WordByWord.ViewModel
 
                     try
                     {
+                        CurrentSentenceIndex = SelectedDocument.CurrentSentenceIndex;
+                        CurrentWordIndex = SelectedDocument.CurrentWordIndex;
+
+                        _resumeReading = SelectedDocument.CurrentSentenceIndex != 0 ||
+                                         SelectedDocument.CurrentWordIndex != 0;
+
                         await ReadSelectedDocument(ctoken);
                     }
                     catch(TaskCanceledException e)//Reader has been paused
@@ -139,18 +145,23 @@ namespace WordByWord.ViewModel
                 _stopWatch.Stop();
                 if (SentenceReadingEnabled)
                 {
-                    SelectedDocument.CurrentSentenceIndex = _currentSentenceIndex;
+                    SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
                 }
                 else
                 {
-                    SelectedDocument.CurrentWordIndex = _currentWordIndex;
+                    SelectedDocument.CurrentWordIndex = CurrentWordIndex;
                 }
 
                 SaveLibrary();
               
             });
 
-            ResetCommand = new RelayCommand(StopCurrentDocument);
+            ResetCommand = new RelayCommand(() =>
+            {
+                CurrentWordIndex = 0;
+                CurrentSentenceIndex = 0;
+                StopCurrentDocument();
+            });
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
@@ -374,6 +385,26 @@ namespace WordByWord.ViewModel
             }
         }
 
+        public int CurrentWordIndex
+        {
+            get => _currentWordIndex;
+            set
+            {
+                Set(() => CurrentWordIndex, ref _currentWordIndex, value);
+                SelectedDocument.CurrentWordIndex = value;
+            }
+        }
+
+        public int CurrentSentenceIndex
+        {
+            get => _currentSentenceIndex;
+            set
+            {
+                Set(() => CurrentSentenceIndex, ref _currentSentenceIndex, value);
+                SelectedDocument.CurrentSentenceIndex = value;
+            }
+        }
+
         #endregion
 
         #region Events
@@ -542,14 +573,14 @@ namespace WordByWord.ViewModel
 
         public bool CheckIfAtEnd()
         {
-            return (SentenceReadingEnabled && _currentSentenceIndex == _sentencesToRead?.Count - 1)
-              || (!SentenceReadingEnabled && _currentWordIndex == _wordsToRead?.Count - 1);
+            return (SentenceReadingEnabled && CurrentSentenceIndex == _sentencesToRead?.Count - 1)
+              || (!SentenceReadingEnabled && CurrentWordIndex == _wordsToRead?.Count - 1);
         }
 
         public bool CheckIfAtBeginning()
         {
-            return (SentenceReadingEnabled && _currentSentenceIndex == 0)
-              || (!SentenceReadingEnabled && _currentWordIndex == 0);
+            return (SentenceReadingEnabled && CurrentSentenceIndex == 0)
+              || (!SentenceReadingEnabled && CurrentWordIndex == 0);
         }
 
         public async Task DefineWordAsync()
@@ -621,17 +652,17 @@ namespace WordByWord.ViewModel
 
             if (!SentenceReadingEnabled)
             {
-                if (_currentWordIndex != 0)
+                if (CurrentWordIndex != 0)
                 {
-                    CurrentWord = _wordsToRead[--_currentWordIndex];
+                    CurrentWord = _wordsToRead[--CurrentWordIndex];
                     _resumeReading = true;
                 }
             }
             else
             {
-                if (_currentSentenceIndex != 0)
+                if (CurrentSentenceIndex != 0)
                 {
-                    CurrentWord = _sentencesToRead[--_currentSentenceIndex];
+                    CurrentWord = _sentencesToRead[--CurrentSentenceIndex];
                     _resumeReading = true;
                 }
             }
@@ -646,17 +677,17 @@ namespace WordByWord.ViewModel
 
             if (!SentenceReadingEnabled)
             {
-                if (_currentWordIndex != _wordsToRead.Count - 1)
+                if (CurrentWordIndex != _wordsToRead.Count - 1)
                 {
-                    CurrentWord = _wordsToRead[++_currentWordIndex];
+                    CurrentWord = _wordsToRead[++CurrentWordIndex];
                     _resumeReading = true;
                 }
             }
             else
             {
-                if (_currentSentenceIndex != _sentencesToRead.Count - 1)
+                if (CurrentSentenceIndex != _sentencesToRead.Count - 1)
                 {
-                    CurrentWord = _sentencesToRead[++_currentSentenceIndex];
+                    CurrentWord = _sentencesToRead[++CurrentSentenceIndex];
                     _resumeReading = true;
                 }
             }
@@ -685,7 +716,6 @@ namespace WordByWord.ViewModel
             _cSource.Dispose();
             _cSource = new CancellationTokenSource();
             _resumeReading = false;
-            _currentWordIndex = 0;
             _stopWatch.Reset();
             CurrentWord = string.Empty;
             DisplayTime = false;
@@ -772,9 +802,9 @@ namespace WordByWord.ViewModel
             {
                 _wordsToRead = await SplitIntoGroups();
                 StartStopWatch();
-                for (int wordIndex = _resumeReading ? _currentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
+                for (int wordIndex = _resumeReading ? CurrentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
-                    _currentWordIndex = wordIndex;
+                    CurrentWordIndex = wordIndex;
                     string word = _wordsToRead[wordIndex];
                     if (!string.IsNullOrWhiteSpace(word))
                     {
@@ -799,9 +829,9 @@ namespace WordByWord.ViewModel
                 // Split on regex to preserve chars we split on.
                 _sentencesToRead = await SplitIntoSentences();
                 StartStopWatch();
-                for (int sentenceIndex = _resumeReading ? _currentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
+                for (int sentenceIndex = _resumeReading ? CurrentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
-                    _currentSentenceIndex = sentenceIndex;
+                    CurrentSentenceIndex = sentenceIndex;
                     string sentence = _sentencesToRead[sentenceIndex];
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
