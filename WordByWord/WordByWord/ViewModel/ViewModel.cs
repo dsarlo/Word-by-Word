@@ -146,10 +146,18 @@ namespace WordByWord.ViewModel
                 if (SentenceReadingEnabled)
                 {
                     SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
+                    if (CheckIfAtEnd())
+                    {
+                        SelectedDocument.CurrentSentenceIndex = 0;
+                    }
                 }
                 else
                 {
                     SelectedDocument.CurrentWordIndex = CurrentWordIndex;
+                    if (CheckIfAtEnd())
+                    {
+                        SelectedDocument.CurrentWordIndex = 0;
+                    }
                 }
 
                 SaveLibrary();
