@@ -141,27 +141,20 @@ namespace WordByWord.ViewModel
                 {
                     ElapsedTime = _stopWatch.Elapsed;
                     DisplayTime = true;
+                    SelectedDocument.CurrentWordIndex = 0;
+                    SelectedDocument.CurrentSentenceIndex = 0;
                 }
                 _stopWatch.Stop();
                 if (SentenceReadingEnabled)
                 {
                     SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
-                    if (CheckIfAtEnd())
-                    {
-                        SelectedDocument.CurrentSentenceIndex = 0;
-                    }
                 }
                 else
                 {
                     SelectedDocument.CurrentWordIndex = CurrentWordIndex;
-                    if (CheckIfAtEnd())
-                    {
-                        SelectedDocument.CurrentWordIndex = 0;
-                    }
                 }
 
                 SaveLibrary();
-              
             });
 
             ResetCommand = new RelayCommand(() =>
