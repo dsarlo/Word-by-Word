@@ -831,7 +831,7 @@ namespace WordByWord.ViewModel
             {
                 string pattern = @"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s" + "|(?<=\\.\")\\s";
 
-                string[] sentences = Regex.Split(text.Replace("…", "..."), pattern, RegexOptions.None).ToArray();
+                string[] sentences = Regex.Split(text, pattern, RegexOptions.None).ToArray();
 
                 for (int i = 0; i < sentences.Length; i += numberOfSentences)
                 {
