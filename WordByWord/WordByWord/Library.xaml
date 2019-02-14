@@ -10,7 +10,7 @@
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         dialog:DialogParticipation.Register="{Binding}"
-        Title="Library" Height="500" Width="700">
+        Title="Library" Height="500" Width="700" MinHeight="500" MinWidth="700">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -28,9 +28,29 @@
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="5*" />
+                <RowDefinition Height="78"/>
+                <RowDefinition />
             </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="1" Grid.Column="2" Panel.ZIndex="2" Margin="15" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Opacity" Value="0.5" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Opacity" Value="1"/>
+                            </Trigger> 
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+
+                <Viewbox Stretch="Uniform" Height="32" Margin="0 0 2 0" VerticalAlignment="Center">
+                    <iconPacks:PackIconModern Kind="Filter" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Viewbox>
+
+                <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedIndex="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
+
+            </StackPanel>
 
             <TextBlock Text="Library" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center" Grid.ColumnSpan="6"/>
 
@@ -81,7 +101,7 @@
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconModern Kind="InformationCircle" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </StackPanel>
-            </Button>            
+            </Button>
             <Button Command="{Binding SwapThemeCommand}">
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconModern Kind="Contrast" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
