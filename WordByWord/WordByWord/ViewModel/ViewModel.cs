@@ -28,6 +28,8 @@ using Google.Apis.Auth.OAuth2;
 using Grpc.Auth;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace WordByWord.ViewModel
 {
@@ -41,7 +43,9 @@ namespace WordByWord.ViewModel
         private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
+        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "none" };
         private ContextMenu _addDocumentContext;
+        private string _selectedExtension = "none";
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
@@ -87,6 +91,7 @@ namespace WordByWord.ViewModel
 
             CreateAddDocumentContextMenu();
 
+            // Relay Commands
             GoBackToLibrary = new RelayCommand(() =>
             {
                 _windowService.CloseWindow("Reader");
@@ -282,11 +287,47 @@ namespace WordByWord.ViewModel
             get => _currentWord;
             set { Set(() => CurrentWord, ref _currentWord, value); }
         }
+       
+        public ICollectionView LibraryView
+        {
+            get
+            {
+                var source = CollectionViewSource.GetDefaultView(Library);
+
+                source.Filter = doc =>
+                {
+                    if (SelectedExtension == "none")
+                        return true;
+                    
+                    OcrDocument document = doc as OcrDocument;
+
+                    string docExtension = string.IsNullOrEmpty(Path.GetExtension(document.FilePath))
+                    ? "manual" : Path.GetExtension(document.FilePath).ToLower();
+
+                    return document != null && docExtension == SelectedExtension;
+                };
+
+                return source;
+            }
+        }
 
         public ObservableCollection<OcrDocument> Library
         {
             get => _library;
-            set { Set(() => Library, ref _library, value); }
+            set
+            {
+                if (Set(() => Library, ref _library, value))
+                {
+                    _library.CollectionChanged += Library_CollectionChanged;
+                    AddFilterExtensions(_library.Select(file => file.FilePath));
+                }
+            }
+        }
+
+        public ObservableCollection<string> LibraryExtensions
+        {
+            get => _libraryExtensions;
+            set => Set(() => LibraryExtensions, ref _libraryExtensions, value);
         }
 
         public OcrDocument SelectedDocument
@@ -305,6 +346,18 @@ namespace WordByWord.ViewModel
                 RemoveDocumentCommand.RaiseCanExecuteChanged();
                 OpenEditorCommand.RaiseCanExecuteChanged();
                 RenameDocumentCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string SelectedExtension
+        {
+            get => _selectedExtension;
+            set
+            {
+                if (Set(() => SelectedExtension, ref _selectedExtension, value))
+                {
+                    LibraryView.Refresh();
+                }
             }
         }
 
@@ -390,9 +443,61 @@ namespace WordByWord.ViewModel
             }
         }
 
+        private void Library_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    OcrDocument newDoc = (OcrDocument)e.NewItems[0];
+                    AddFilterExtensions(new string[] { newDoc.FilePath });
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    if (LibraryView.IsEmpty)
+                    {
+                        OcrDocument oldDoc = (OcrDocument)e.OldItems[0];
+                        RemoveFilterExtensions(new string[] { oldDoc.FilePath });
+                        SelectedExtension = "none";
+                    }
+                    break;
+            }
+        }
+        
         #endregion
 
         #region Methods
+        
+        private void AddFilterExtensions(IEnumerable<string> filepaths)
+        {
+            foreach (string path in filepaths)
+            {
+                string extension = string.IsNullOrEmpty(Path.GetExtension(path)) ? 
+                    "manual" : Path.GetExtension(path).ToLower();
+
+                if (!LibraryExtensions.Contains(extension))
+                {
+                    LibraryExtensions.Add(extension);
+                }
+            }
+        }
+
+        private void RemoveFilterExtensions(IEnumerable<string> filepaths)
+        {
+            /* 
+             * This method takes in a string array in the event we decide we want to give the user 
+             * the ability to remove multiple items from the library in the future.
+             */
+            foreach (string path in filepaths)
+            {
+                string extension = string.IsNullOrEmpty(Path.GetExtension(path)) ?
+                    "manual" : Path.GetExtension(path).ToLower();
+
+                if (LibraryExtensions.Contains(extension))
+                {
+                    LibraryExtensions.Remove(extension);
+                }
+            }
+        }
 
         private bool IsEachFileSupported(string[] fileNames)
         {

@@ -48,7 +48,7 @@
                     <iconPacks:PackIconModern Kind="Filter" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Viewbox>
 
-                <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedIndex="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
+                <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedValue="{Binding SelectedExtension}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
 
             </StackPanel>
 
@@ -60,7 +60,7 @@
 
             </Button>
 
-            <ListView x:Name="LibraryListView" Drop="LibraryListView_Drop" AllowDrop="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
+            <ListView x:Name="LibraryListView" Drop="LibraryListView_Drop" AllowDrop="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding LibraryView}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>
