@@ -12,7 +12,7 @@ namespace WordByWord
             InitializeComponent();
 
             DataContext = viewModel;
-            viewModel.EditorText = viewModel.SelectedDocument.OcrText;
+            viewModel.EditorText = viewModel.SelectedDocument.Text;
         }
     }
 }

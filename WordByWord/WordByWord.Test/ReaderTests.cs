@@ -15,8 +15,8 @@ namespace WordByWord.Test
     {
         private static ViewModel.ViewModel _viewModel;
 
-        [ClassInitialize]
-        public static void TestSetup(TestContext testContext)
+        [TestInitialize]
+        public void Setup()
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
@@ -28,12 +28,18 @@ namespace WordByWord.Test
             _viewModel = ServiceLocator.Current.GetInstance<ViewModel.ViewModel>();
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            SimpleIoc.Default.Reset();
+        }
+
         [TestMethod]
         public async Task SplitIntoGroups()
         {
-            OcrDocument testDocument = new OcrDocument("test")
+            Document testDocument = new Document("test")
             {
-                OcrText = "I solemnly swear\r\nI am up to no good."
+                Text = "I solemnly swear\r\nI am up to no good."
             };
             _viewModel.SelectedDocument = testDocument;
 
@@ -82,14 +88,14 @@ namespace WordByWord.Test
 
             string testingStringQuotes = "\"I'm going to make him an offer he cannot refuse.\" He said.";
 
-            OcrDocument testDocument = new OcrDocument("test")
+            Document testDocument = new Document("test")
             {
-                OcrText = testingString
+                Text = testingString
             };
 
-            OcrDocument testDocumentQuotes = new OcrDocument("testQuotes")
+            Document testDocumentQuotes = new Document("testQuotes")
             {
-                OcrText = testingStringQuotes
+                Text = testingStringQuotes
             };
 
             _viewModel.SelectedDocument = testDocument;

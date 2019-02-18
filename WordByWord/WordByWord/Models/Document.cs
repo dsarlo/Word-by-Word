@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace WordByWord.Models
 {
-    public class OcrDocument : ObservableObject
+    public class Document : ObservableObject
     {
         private string _ocrText = string.Empty;
         private bool _isBusy = true;
@@ -17,7 +17,7 @@ namespace WordByWord.Models
         private string _thumbnailPath;
         private BitmapSource _thumbnail;
 
-        public OcrDocument(string filePath)
+        public Document(string filePath)
         {
             FilePath = filePath;
             _fileName = Path.GetFileName(filePath);
@@ -31,12 +31,12 @@ namespace WordByWord.Models
             set { Set(() => FileName, ref _fileName, value); }
         }
 
-        public string OcrText
+        public string Text
         {
             get => _ocrText;
             set
             {
-                Set(() => OcrText, ref _ocrText, value);
+                Set(() => Text, ref _ocrText, value);
                 IsBusy = false;
             }
         }

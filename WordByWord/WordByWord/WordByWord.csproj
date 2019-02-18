@@ -92,6 +92,9 @@
     <Reference Include="Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad, processorArchitecture=MSIL">
       <HintPath>..\packages\Grpc.Core.1.18.0\lib\net45\Grpc.Core.dll</HintPath>
     </Reference>
+    <Reference Include="itextsharp, Version=5.5.13.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <HintPath>..\packages\iTextSharp.5.5.13\lib\itextsharp.dll</HintPath>
+    </Reference>
     <Reference Include="MahApps.Metro, Version=1.6.5.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.6.5\lib\net47\MahApps.Metro.dll</HintPath>
     </Reference>
@@ -231,7 +234,7 @@
     <Compile Include="InputText.xaml.cs">
       <DependentUpon>InputText.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\OcrDocument.cs" />
+    <Compile Include="Models\Document.cs" />
     <Compile Include="Converters\ProgressBarVisibilityConverter.cs" />
     <Compile Include="Reader.xaml.cs">
       <DependentUpon>Reader.xaml</DependentUpon>
