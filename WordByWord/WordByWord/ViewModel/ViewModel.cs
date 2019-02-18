@@ -30,20 +30,22 @@ using System.Reflection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
 
 namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
-        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg" };
+        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif" };
 
         private string _editorText = string.Empty;
-        private OcrDocument _selectedDocument;
+        private Document _selectedDocument;
         private readonly Stopwatch _stopWatch = new Stopwatch();
         private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
-        private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
         private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "none" };
+        private ObservableCollection<Document> _library = new ObservableCollection<Document>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
         private string _selectedExtension = "none";
         private string _currentWord = string.Empty;
@@ -311,7 +313,7 @@ namespace WordByWord.ViewModel
             }
         }
 
-        public ObservableCollection<OcrDocument> Library
+        public ObservableCollection<Document> Library
         {
             get => _library;
             set
@@ -330,7 +332,7 @@ namespace WordByWord.ViewModel
             set => Set(() => LibraryExtensions, ref _libraryExtensions, value);
         }
 
-        public OcrDocument SelectedDocument
+        public Document SelectedDocument
         {
             get => _selectedDocument;
             set
@@ -428,12 +430,13 @@ namespace WordByWord.ViewModel
             _windowService.ShowWindow("InputText", this);
         }
 
-        private void UploadImage_Click(object sender, RoutedEventArgs e)
+        private void ImportDocument_Click(object sender, RoutedEventArgs e)
         {
+            //Todo create dialog service
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = true,
-                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg",
+                Filter = "Documents/Images (*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif)|*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -505,7 +508,7 @@ namespace WordByWord.ViewModel
 
             foreach(string fileName in fileNames)
             {
-                eachFileIsSupported = _fileTypeWhitelist.Contains(Path.GetExtension(fileName).ToLower());
+                eachFileIsSupported = _fileTypeWhitelist.Contains(System.IO.Path.GetExtension(fileName).ToLower());
 
                 if (!eachFileIsSupported) break;
             }
@@ -523,27 +526,38 @@ namespace WordByWord.ViewModel
                 {
                     if (Library.All(doc => doc.FilePath != filePath))
                     {
-                        System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
-                        Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
+                        Document newDocument = new Document(filePath) { Thumbnail = null, ThumbnailPath = null };
 
-                        string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
-                        imageToBitmap.Save(thumbnailPath);
+                        try
+                        {
+                            System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
+                            Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
 
-                        BitmapImage thumbnail = new BitmapImage();
-                        thumbnail.BeginInit();
-                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
-                        thumbnail.UriSource = new Uri(thumbnailPath);
-                        thumbnail.EndInit();
+                            string thumbnailPath = $"{SerializedDataFolderPath}{System.IO.Path.GetFileName(filePath)}";
+                            imageToBitmap.Save(thumbnailPath);
 
-                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
-                        Library.Add(ocrDoc);
+                            BitmapImage thumbnail = new BitmapImage();
+                            thumbnail.BeginInit();
+                            thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                            thumbnail.UriSource = new Uri(thumbnailPath);
+                            thumbnail.EndInit();
+
+                            newDocument.Thumbnail = thumbnail;
+                            newDocument.ThumbnailPath = thumbnailPath;
+                        }
+                        catch (OutOfMemoryException e)
+                        {
+                            Logger.LogError("File does not contain a valid image.\nStock image will be used instead (Check mark).", e.Message);
+                        }
+
+                        Library.Add(newDocument);
                         filePaths.Add(filePath);
                     }
                 }
 
                 if (filePaths.Count > 0)
                 {
-                    await RunOcrOnFiles(filePaths);
+                    await ImportMultipleDocuments(filePaths);
                 }
                 IsBusy = false;
             }
@@ -553,6 +567,37 @@ namespace WordByWord.ViewModel
                 _dialogService.ShowModalMessageExternal(this, "Too many files",
                     "You tried importing more than 25 files at once.\nPlease try again.");
             }
+        }
+
+        private async Task ImportMultipleDocuments(List<string> filePaths)
+        {
+            await Task.Run(() =>
+            {
+                foreach (string filePath in filePaths)
+                {
+                    string result = string.Empty;
+
+                    //Todo turn this into a file reading service?
+                    switch (System.IO.Path.GetExtension(filePath).ToLower())
+                    {
+                        case ".pdf":
+                            result = GetTextFromPdf(filePath);
+                            break;
+                        case ".png":
+                        case ".jpeg":
+                        case ".jpg":
+                        case ".ico":
+                        case ".raw":
+                        case ".bmp":
+                        case ".gif":
+                            result = GetTextFromImage(filePath);
+                            break;
+                    }
+
+                    Library.Single(doc => doc.FilePath == filePath).Text = result;
+                    SaveLibrary();
+                }
+            });
         }
 
         private void InstantiateCloudVisionClient()
@@ -809,7 +854,7 @@ namespace WordByWord.ViewModel
                 string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).Single(filePath => filePath.EndsWith("library.json"));
                 if (!string.IsNullOrEmpty(serializedLibraryFile))
                 {
-                    Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(
+                    Library = JsonConvert.DeserializeObject<ObservableCollection<Document>>(
                         File.ReadAllText(serializedLibraryFile));
                 }
             }
@@ -823,9 +868,9 @@ namespace WordByWord.ViewModel
             {
                 if (Library.All(doc => doc.FileName != UserInputTitle))
                 {
-                    OcrDocument newDoc = new OcrDocument(UserInputTitle) //All OcrDocuments must be created with a filePath!
+                    Document newDoc = new Document(UserInputTitle) //All OcrDocuments must be created with a filePath!
                     {
-                        OcrText = UserInputBody
+                        Text = UserInputBody
                     };
 
                     Library.Add(newDoc);
@@ -929,7 +974,7 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string text = SelectedDocument.OcrText;
+            string text = SelectedDocument.Text;
             int numberOfSentences = NumberOfSentences;
 
             await Task.Run(() =>
@@ -952,7 +997,7 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string sentence = SelectedDocument.OcrText;
+            string sentence = SelectedDocument.Text;
             int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
@@ -969,22 +1014,9 @@ namespace WordByWord.ViewModel
             return groups;
         }
 
-        private async Task RunOcrOnFiles(List<string> filePaths)
-        {
-            await Task.Run(() =>
-            {
-                foreach (string filePath in filePaths)
-                {
-                    string ocrResult = GetTextFromImage(filePath);
-                    Library.Single(doc => doc.FilePath == filePath).OcrText = ocrResult;
-                    SaveLibrary();
-                }
-            });
-        }
-
         private void ConfirmEdit()
         {
-            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
+            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
 
             _windowService.CloseWindow("Editor");
 
@@ -993,7 +1025,7 @@ namespace WordByWord.ViewModel
 
         private void RemoveDocument()
         {
-            OcrDocument docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
+            Document docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
             Library.Remove(docToRemove);
             if (File.Exists(docToRemove.ThumbnailPath))
             {
@@ -1047,11 +1079,11 @@ namespace WordByWord.ViewModel
             };
             MenuItem uploadImage = new MenuItem
             {
-                Header = "Upload image(s)...",
+                Header = "Import document(s)...",
             };
 
             inputText.Click += InputText_Click;
-            uploadImage.Click += UploadImage_Click;
+            uploadImage.Click += ImportDocument_Click;
 
             _addDocumentContext.Items.Add(inputText);
             _addDocumentContext.Items.Add(uploadImage);
@@ -1065,13 +1097,37 @@ namespace WordByWord.ViewModel
             string result = "No text found!";
 
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
-            var response = _cloudVisionClient.DetectText(image);
+            IReadOnlyList<EntityAnnotation> response = new List<EntityAnnotation>();
+
+            try
+            {
+                response = _cloudVisionClient.DetectText(image);
+            }
+            catch(AnnotateImageException e)
+            {
+                //Todo Warn user?
+                Logger.LogError("The file you are trying to import is corrupt and can not be properly read.", e.Message);
+            }
 
             if (response.Any())
             {
                 result = response[0].Description ?? "No text found!";
             }
             return result;
+        }
+
+        public string GetTextFromPdf(string filePath)
+        {
+            PdfReader reader = new PdfReader(filePath);
+            //Todo limit the number of pages so that the user can't upload a 500 page pdf.
+            int numberOfPages = reader.NumberOfPages;
+            string allPdfText = string.Empty;
+
+            for (int currentPage = 1; currentPage <= numberOfPages; currentPage++)
+            {
+                allPdfText += PdfTextExtractor.GetTextFromPage(reader, currentPage, new LocationTextExtractionStrategy());
+            }
+            return allPdfText;
         }
 
         #endregion
