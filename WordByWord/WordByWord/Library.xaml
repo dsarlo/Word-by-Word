@@ -32,13 +32,9 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
+            <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedValue="{Binding SelectedExtension}" HorizontalAlignment="Left" Margin="20 0 0 0" HorizontalContentAlignment="Center" Height="35" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
 
-            <StackPanel Grid.Row="0" Panel.ZIndex="2" Margin="15" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-                <Label Content="Filter" FontSize="20" Margin="0 0 5 0"/>
-                <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedValue="{Binding SelectedExtension}" HorizontalContentAlignment="Center" Height="30" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
-            </StackPanel>
-
-            <TextBlock Text="Library" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center" Grid.ColumnSpan="6"/>
+            <TextBlock Text="Library" Grid.Column="1" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center"/>
 
             <Button x:Name="AddButton" Grid.Column="2" Grid.Row="0" FontSize="70" Command="{Binding AddDocumentCommand}" HorizontalAlignment="Right" Margin="0 0 15 0" FontFamily="Global User Interface" Height="76" Width="76" BorderThickness="0" Style="{DynamicResource MetroCircleButtonStyle}">
 
