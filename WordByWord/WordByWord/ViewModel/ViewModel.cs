@@ -35,7 +35,7 @@ namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
-        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf" };
+        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif" };
 
         private string _editorText = string.Empty;
         private Document _selectedDocument;
@@ -379,27 +379,11 @@ namespace WordByWord.ViewModel
 
         private void ImportDocument_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Multiselect = true,
-                Filter = "Documents (*.pdf;)|*.pdf;",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                //TODO For now this method will take in false if it should not use OCR. Will make this "smart" later.
-                ImportFilesToLibrary(openFileDialog.FileNames, false);
-            }
-        }
-
-        private void UploadImage_Click(object sender, RoutedEventArgs e)
-        {
             //Todo create dialog service
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = true,
-                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg",
+                Filter = "Documents/Images (*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif)|*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -427,7 +411,7 @@ namespace WordByWord.ViewModel
             return eachFileIsSupported;
         }
 
-        public async void ImportFilesToLibrary(string[] fileNames, bool importingImages = true)
+        public async void ImportFilesToLibrary(string[] fileNames)
         {
             if (fileNames.Length < 25 && IsEachFileSupported(fileNames))
             {
@@ -466,11 +450,7 @@ namespace WordByWord.ViewModel
                     }
                 }
 
-                if (filePaths.Count > 0 && importingImages)
-                {
-                    await RunOcrOnImages(filePaths);
-                }
-                else
+                if (filePaths.Count > 0)
                 {
                     await ImportMultipleDocuments(filePaths);
                 }
@@ -497,6 +477,15 @@ namespace WordByWord.ViewModel
                     {
                         case ".pdf":
                             result = GetTextFromPdf(filePath);
+                            break;
+                        case ".png":
+                        case ".jpeg":
+                        case ".jpg":
+                        case ".ico":
+                        case ".raw":
+                        case ".bmp":
+                        case ".gif":
+                            result = GetTextFromImage(filePath);
                             break;
                     }
 
@@ -920,19 +909,6 @@ namespace WordByWord.ViewModel
             return groups;
         }
 
-        private async Task RunOcrOnImages(List<string> filePaths)
-        {
-            await Task.Run(() =>
-            {
-                foreach (string filePath in filePaths)
-                {
-                    string ocrResult = GetTextFromImage(filePath);
-                    Library.Single(doc => doc.FilePath == filePath).Text = ocrResult;
-                    SaveLibrary();
-                }
-            });
-        }
-
         private void ConfirmEdit()
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
@@ -998,20 +974,14 @@ namespace WordByWord.ViewModel
             };
             MenuItem uploadImage = new MenuItem
             {
-                Header = "Upload image(s)...",
-            };
-            MenuItem importDocument = new MenuItem
-            {
                 Header = "Import document(s)...",
             };
 
             inputText.Click += InputText_Click;
-            uploadImage.Click += UploadImage_Click;
-            importDocument.Click += ImportDocument_Click;
+            uploadImage.Click += ImportDocument_Click;
 
             _addDocumentContext.Items.Add(inputText);
             _addDocumentContext.Items.Add(uploadImage);
-            _addDocumentContext.Items.Add(importDocument);
         }
 
         public string GetTextFromImage(string filePath)
@@ -1022,7 +992,17 @@ namespace WordByWord.ViewModel
             string result = "No text found!";
 
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
-            var response = _cloudVisionClient.DetectText(image);
+            IReadOnlyList<EntityAnnotation> response = new List<EntityAnnotation>();
+
+            try
+            {
+                response = _cloudVisionClient.DetectText(image);
+            }
+            catch(AnnotateImageException e)
+            {
+                //Todo Warn user?
+                Logger.LogError("The file you are trying to import is corrupt and can not be properly read.", e.Message);
+            }
 
             if (response.Any())
             {
