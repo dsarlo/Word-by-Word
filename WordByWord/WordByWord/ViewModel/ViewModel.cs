@@ -43,9 +43,9 @@ namespace WordByWord.ViewModel
         private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
         private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
-        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "none" };
+        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "no filter" };
         private ContextMenu _addDocumentContext;
-        private string _selectedExtension = "none";
+        private string _selectedExtension = "no filter";
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
@@ -296,7 +296,7 @@ namespace WordByWord.ViewModel
 
                 source.Filter = doc =>
                 {
-                    if (SelectedExtension == "none")
+                    if (SelectedExtension == "no filter")
                         return true;
                     
                     OcrDocument document = doc as OcrDocument;
@@ -457,7 +457,7 @@ namespace WordByWord.ViewModel
                     {
                         OcrDocument oldDoc = (OcrDocument)e.OldItems[0];
                         RemoveFilterExtensions(new string[] { oldDoc.FilePath });
-                        SelectedExtension = "none";
+                        SelectedExtension = "no filter";
                     }
                     break;
             }
