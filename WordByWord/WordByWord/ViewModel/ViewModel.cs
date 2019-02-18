@@ -44,7 +44,7 @@ namespace WordByWord.ViewModel
         private readonly Stopwatch _stopWatch = new Stopwatch();
         private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
-        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "none" };
+        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "no filter" };
         private ObservableCollection<Document> _library = new ObservableCollection<Document>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
         private string _selectedExtension = "no filter";
