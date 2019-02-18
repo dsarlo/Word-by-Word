@@ -300,11 +300,11 @@ namespace WordByWord.ViewModel
                 {
                     if (SelectedExtension == "no filter")
                         return true;
-                    
-                    OcrDocument document = doc as OcrDocument;
 
-                    string docExtension = string.IsNullOrEmpty(Path.GetExtension(document.FilePath))
-                    ? "manual" : Path.GetExtension(document.FilePath).ToLower();
+                    Document document = doc as Document;
+
+                    string docExtension = string.IsNullOrEmpty(System.IO.Path.GetExtension(document.FilePath))
+                    ? "manual" : System.IO.Path.GetExtension(document.FilePath).ToLower();
 
                     return document != null && docExtension == SelectedExtension;
                 };
@@ -451,14 +451,14 @@ namespace WordByWord.ViewModel
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    OcrDocument newDoc = (OcrDocument)e.NewItems[0];
+                    Document newDoc = (Document)e.NewItems[0];
                     AddFilterExtensions(new string[] { newDoc.FilePath });
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
                     if (LibraryView.IsEmpty)
                     {
-                        OcrDocument oldDoc = (OcrDocument)e.OldItems[0];
+                        Document oldDoc = (Document)e.OldItems[0];
                         RemoveFilterExtensions(new string[] { oldDoc.FilePath });
                         SelectedExtension = "no filter";
                     }
@@ -474,8 +474,8 @@ namespace WordByWord.ViewModel
         {
             foreach (string path in filepaths)
             {
-                string extension = string.IsNullOrEmpty(Path.GetExtension(path)) ? 
-                    "manual" : Path.GetExtension(path).ToLower();
+                string extension = string.IsNullOrEmpty(System.IO.Path.GetExtension(path)) ? 
+                    "manual" : System.IO.Path.GetExtension(path).ToLower();
 
                 if (!LibraryExtensions.Contains(extension))
                 {
@@ -492,8 +492,8 @@ namespace WordByWord.ViewModel
              */
             foreach (string path in filepaths)
             {
-                string extension = string.IsNullOrEmpty(Path.GetExtension(path)) ?
-                    "manual" : Path.GetExtension(path).ToLower();
+                string extension = string.IsNullOrEmpty(System.IO.Path.GetExtension(path)) ?
+                    "manual" : System.IO.Path.GetExtension(path).ToLower();
 
                 if (LibraryExtensions.Contains(extension))
                 {
@@ -868,7 +868,7 @@ namespace WordByWord.ViewModel
             {
                 if (Library.All(doc => doc.FileName != UserInputTitle))
                 {
-                    Document newDoc = new Document(UserInputTitle) //All OcrDocuments must be created with a filePath!
+                    Document newDoc = new Document(UserInputTitle) //All Documents must be created with a filePath!
                     {
                         Text = UserInputBody
                     };
