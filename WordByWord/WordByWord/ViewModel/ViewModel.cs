@@ -89,6 +89,8 @@ namespace WordByWord.ViewModel
             _dialogService = dialogService;
             _windowService = windowService;
 
+            _windowService.OnWindowOpened += WindowService_OnWindowOpened;
+
             BindingOperations.EnableCollectionSynchronization(_library, _libraryLock);
 
             CreateAddDocumentContextMenu();
@@ -96,8 +98,8 @@ namespace WordByWord.ViewModel
             // Relay Commands
             GoBackToLibrary = new RelayCommand(() =>
             {
-                _windowService.CloseWindow("Reader");
-                _windowService.ShowWindow("Library", this);
+                _windowService.CloseWindow(Windows.Reader);
+                _windowService.ShowWindow(Windows.Library, this);
             });
 
             RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
@@ -153,6 +155,16 @@ namespace WordByWord.ViewModel
             SwapThemeCommand = new RelayCommand(SwapTheme);
 
             LoadLibrary();
+        }
+
+        private void WindowService_OnWindowOpened(object sender, Windows e)
+        {
+            switch(e)
+            {
+                case Windows.Reader:
+                    CacheWordAndSentenceGrouping();
+                    break;
+            }
         }
 
         #region Properties
@@ -427,7 +439,7 @@ namespace WordByWord.ViewModel
 
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
-            _windowService.ShowWindow("InputText", this);
+            _windowService.ShowWindow(Windows.InputText, this);
         }
 
         private void ImportDocument_Click(object sender, RoutedEventArgs e)
@@ -878,7 +890,7 @@ namespace WordByWord.ViewModel
                     UserInputTitle = string.Empty;
                     UserInputBody = string.Empty;
 
-                    _windowService.CloseWindow("InputText");
+                    _windowService.CloseWindow(Windows.InputText);
 
                     SaveLibrary();
                 }
@@ -912,7 +924,6 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                _wordsToRead = await SplitIntoGroups();
                 StartStopWatch();
                 for (int wordIndex = _resumeReading ? _currentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
@@ -938,8 +949,6 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                // Split on regex to preserve chars we split on.
-                _sentencesToRead = await SplitIntoSentences();
                 StartStopWatch();
                 for (int sentenceIndex = _resumeReading ? _currentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
@@ -1018,9 +1027,21 @@ namespace WordByWord.ViewModel
         {
             Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
 
-            _windowService.CloseWindow("Editor");
+            _windowService.CloseWindow(Windows.Editor);
 
             SaveLibrary();
+
+            if(_windowService.IsWindowOpen(Windows.Reader))//And user did change something
+            {
+                CacheWordAndSentenceGrouping();
+            }
+        }
+
+        private async void CacheWordAndSentenceGrouping()
+        {
+            //Todo add loading spinner in case the file is huge
+            _wordsToRead = await SplitIntoGroups();
+            _sentencesToRead = await SplitIntoSentences();
         }
 
         private void RemoveDocument()
@@ -1037,23 +1058,23 @@ namespace WordByWord.ViewModel
 
         internal void OpenReaderWindow()
         {
-            _windowService.CloseWindow("Library");
-            _windowService.ShowWindow("Reader", this);
+            _windowService.CloseWindow(Windows.Library);
+            _windowService.ShowWindow(Windows.Reader, this);
         }
 
         internal void OpenLibraryWindow()
         {
-            _windowService.ShowWindow("Library", this);
+            _windowService.ShowWindow(Windows.Library, this);
         }
 
         private void OpenEditorWindow()
         {
-            _windowService.ShowWindow("Editor", this);
+            _windowService.ShowWindow(Windows.Editor, this);
         }
 
         private void OpenInfoWindow()
         {
-            _windowService.ShowWindow("Info", this);
+            _windowService.ShowWindow(Windows.Info, this);
         }
 
         private void AddDocumentContext()
