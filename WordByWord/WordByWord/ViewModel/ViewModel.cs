@@ -37,7 +37,7 @@ namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
-        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif" };
+        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif", ".tiff", ".tif", ".webp" };
 
         private string _editorText = string.Empty;
         private Document _selectedDocument;
@@ -448,7 +448,7 @@ namespace WordByWord.ViewModel
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = true,
-                Filter = "Documents/Images (*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif)|*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif",
+                Filter = "Documents/Images (*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif;*.tiff;*.tif;*.webp)|*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif;*.tiff;*.tif;*.webp",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -602,6 +602,9 @@ namespace WordByWord.ViewModel
                         case ".raw":
                         case ".bmp":
                         case ".gif":
+                        case ".tiff":
+                        case ".tif":
+                        case ".webp":
                             result = GetTextFromImage(filePath);
                             break;
                     }
