@@ -46,12 +46,5 @@ namespace WordByWord
                 _viewModel.SaveLibrary();
             }
         }
-
-        private void LibraryListView_Drop(object sender, System.Windows.DragEventArgs e)
-        {
-            string[] filesDroppedIn = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            
-            _viewModel.ImportFilesToLibrary(filesDroppedIn);
-        }
     }
 }

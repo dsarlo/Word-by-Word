@@ -43,10 +43,10 @@
 
             </Button>
 
-            <ListView x:Name="LibraryListView" Drop="LibraryListView_Drop" dd:DragDrop.DropHandler="{Binding}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="True" AllowDrop="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding LibraryView}">
+            <ListView x:Name="LibraryListView" AllowDrop="True" dd:DragDrop.DropHandler="{Binding}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding LibraryView}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid AllowDrop="True">
+                        <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="8*"/>

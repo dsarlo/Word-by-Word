@@ -32,10 +32,11 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using iTextSharp.text.pdf;
 using iTextSharp.text.pdf.parser;
+using GongSolutions.Wpf.DragDrop;
 
 namespace WordByWord.ViewModel
 {
-    public class ViewModel : ObservableObject
+    public class ViewModel : ObservableObject, IDropTarget
     {
         private readonly HashSet<string> _fileTypeWhitelist = new HashSet<string>(){ ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif", ".tiff", ".tif", ".webp" };
 
@@ -530,7 +531,7 @@ namespace WordByWord.ViewModel
             return eachFileIsSupported;
         }
 
-        public async void ImportFilesToLibrary(string[] fileNames)
+        public async void ImportFilesToLibrary(string[] fileNames, int? insertIndex = null)
         {
             // It's just a reordering
             if (fileNames == null)
@@ -538,8 +539,8 @@ namespace WordByWord.ViewModel
 
             if (!IsEachFileSupported(fileNames))
             {
-                _dialogService.ShowModalMessageExternal(this, "Invalid files",
-                    "Please import only valid file types.");
+                _dialogService.ShowModalMessageExternal(this, "Invalid file(s)",
+                   $"Please import only valid file types.\n({string.Join(", ", _fileTypeWhitelist)})");
                 return;
             }
 
@@ -549,6 +550,7 @@ namespace WordByWord.ViewModel
                 List<string> filePaths = new List<string>();
                 foreach (string filePath in fileNames)
                 {
+                    // TODO: Maybe notify the user when they're trying to import an already existing doc?
                     if (Library.All(doc => doc.FilePath != filePath))
                     {
                         Document newDocument = new Document(filePath) { Thumbnail = null, ThumbnailPath = null };
@@ -575,7 +577,10 @@ namespace WordByWord.ViewModel
                             Logger.LogError("File does not contain a valid image.\nStock image will be used instead (Check mark).", e.Message);
                         }
 
-                        Library.Add(newDocument);
+                        int index = insertIndex ?? Library.Count;
+
+                        Library.Insert(index, newDocument);
+                        SelectedDocument = Library[index];
                         filePaths.Add(filePath);
                     }
                 }
@@ -903,12 +908,12 @@ namespace WordByWord.ViewModel
 
                     Library.Add(newDoc);
 
+                    SelectedDocument = newDoc;
+
                     UserInputTitle = string.Empty;
                     UserInputBody = string.Empty;
 
                     _windowService.CloseWindow(Windows.InputText);
-
-                    SaveLibrary();
                 }
                 else
                 {
@@ -1069,7 +1074,6 @@ namespace WordByWord.ViewModel
                 File.SetAttributes(docToRemove.ThumbnailPath, FileAttributes.Normal);
                 File.Delete(docToRemove.ThumbnailPath);
             }
-            SaveLibrary();
         }
 
         internal void OpenReaderWindow()
@@ -1165,6 +1169,44 @@ namespace WordByWord.ViewModel
                 allPdfText += PdfTextExtractor.GetTextFromPage(reader, currentPage, new LocationTextExtractionStrategy());
             }
             return allPdfText;
+        }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+
+            var dataObject = dropInfo.Data as IDataObject;
+
+            if (dataObject != null && dataObject.GetDataPresent(DataFormats.FileDrop))
+            {
+                dropInfo.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                dropInfo.Effects = DragDropEffects.Move;
+            }
+        }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            var dataObject = dropInfo.Data as DataObject;
+
+            if (dataObject != null && dataObject.ContainsFileDropList())
+            {
+                // External drop
+                string[] files = new string[dataObject.GetFileDropList().Count];
+                dataObject.GetFileDropList().CopyTo(files, 0);
+
+                ImportFilesToLibrary(files, dropInfo.InsertIndex);
+            }
+            else
+            {
+                // Internal reordering
+                GongSolutions.Wpf.DragDrop.DragDrop.DefaultDropHandler.Drop(dropInfo);
+                Document doc = dropInfo.Data as Document;
+
+                SelectedDocument = doc;
+            }
         }
 
         #endregion
