@@ -124,6 +124,10 @@ namespace WordByWord.ViewModel
                                          SelectedDocument.CurrentWordIndex != 0;
 
                         await ReadSelectedDocument(ctoken);
+
+                        //Resets the document reading
+                        SelectedDocument.CurrentWordIndex = 0;
+                        SelectedDocument.CurrentSentenceIndex = 0;
                     }
                     catch(TaskCanceledException e)//Reader has been paused
                     {
@@ -152,18 +156,23 @@ namespace WordByWord.ViewModel
                 {
                     ElapsedTime = _stopWatch.Elapsed;
                     DisplayTime = true;
+
+                    //Resets the document reading
                     SelectedDocument.CurrentWordIndex = 0;
                     SelectedDocument.CurrentSentenceIndex = 0;
                 }
-                _stopWatch.Stop();
-                if (SentenceReadingEnabled)
-                {
-                    SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
-                }
                 else
                 {
-                    SelectedDocument.CurrentWordIndex = CurrentWordIndex;
+                    if (SentenceReadingEnabled)
+                    {
+                        SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
+                    }
+                    else
+                    {
+                        SelectedDocument.CurrentWordIndex = CurrentWordIndex;
+                    }
                 }
+                _stopWatch.Stop();
 
                 SaveLibrary();
             });
@@ -1069,12 +1078,12 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string sentence = SelectedDocument.Text;
+            string docText = SelectedDocument.Text;
             int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
             {
-                string[] words = sentence.Replace("\r\n", " ").Split();
+                string[] words = docText.Split(new char[]{' ', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
 
                 for (int i = 0; i < words.Length; i += numberOfWords)
                 {
@@ -1088,7 +1097,13 @@ namespace WordByWord.ViewModel
 
         private void ConfirmEdit()
         {
-            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
+            SelectedDocument.Text = EditorText;
+
+            _resumeReading = false;
+            _currentWordIndex = 0;
+            _currentSentenceIndex = 0;
+            SelectedDocument.CurrentSentenceIndex = 0;
+            SelectedDocument.CurrentWordIndex = 0;
 
             _windowService.CloseWindow(Windows.Editor);
 
@@ -1109,13 +1124,12 @@ namespace WordByWord.ViewModel
 
         private void RemoveDocument()
         {
-            Document docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
-            Library.Remove(docToRemove);
-            if (File.Exists(docToRemove.ThumbnailPath))
+            if (File.Exists(SelectedDocument.ThumbnailPath))
             {
-                File.SetAttributes(docToRemove.ThumbnailPath, FileAttributes.Normal);
-                File.Delete(docToRemove.ThumbnailPath);
+                File.SetAttributes(SelectedDocument.ThumbnailPath, FileAttributes.Normal);
+                File.Delete(SelectedDocument.ThumbnailPath);
             }
+            Library.Remove(SelectedDocument);
         }
 
         internal void OpenReaderWindow()
