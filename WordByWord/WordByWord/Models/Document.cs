@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace WordByWord.Models
 {
-    public class OcrDocument : ObservableObject
+    public class Document : ObservableObject
     {
         private string _ocrText = string.Empty;
         private bool _isBusy = true;
@@ -19,7 +19,7 @@ namespace WordByWord.Models
         private int _currentWordIndex;
         private int _currentSentenceIndex;
 
-        public OcrDocument(string filePath)
+        public Document(string filePath)
         {
             FilePath = filePath;
             _fileName = Path.GetFileName(filePath);
@@ -45,12 +45,12 @@ namespace WordByWord.Models
             set { Set(() => CurrentSentenceIndex, ref _currentSentenceIndex, value); }
         } 
 
-        public string OcrText
+        public string Text
         {
             get => _ocrText;
             set
             {
-                Set(() => OcrText, ref _ocrText, value);
+                Set(() => Text, ref _ocrText, value);
                 IsBusy = false;
             }
         }

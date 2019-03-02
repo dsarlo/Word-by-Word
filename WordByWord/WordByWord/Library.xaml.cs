@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using CommonServiceLocator;
 using MahApps.Metro.Controls;
+using WordByWord.Models;
 
 namespace WordByWord
 {
@@ -44,13 +45,6 @@ namespace WordByWord
                 _viewModel.SelectedDocument.IsEditingFileName = false;
                 _viewModel.SaveLibrary();
             }
-        }
-
-        private void LibraryListView_Drop(object sender, System.Windows.DragEventArgs e)
-        {
-            string[] filesDroppedIn = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            
-            _viewModel.ImportFilesToLibrary(filesDroppedIn);
         }
     }
 }

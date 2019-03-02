@@ -6,11 +6,12 @@
         xmlns:mah="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:WordByWord"
         xmlns:converters="clr-namespace:WordByWord.Converters"
+        xmlns:dd="urn:gong-wpf-dragdrop"
         mc:Ignorable="d"
         xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         dialog:DialogParticipation.Register="{Binding}"
-        Title="Library" Height="500" Width="700">
+        Title="Library" Height="500" Width="700" MinHeight="500" MinWidth="700">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -28,11 +29,13 @@
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="5*" />
+                <RowDefinition Height="78"/>
+                <RowDefinition />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="Library" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center" Grid.ColumnSpan="6"/>
+            <ComboBox ItemsSource="{Binding LibraryExtensions}" SelectedValue="{Binding SelectedExtension}" HorizontalAlignment="Left" Margin="20 0 0 0" HorizontalContentAlignment="Center" Height="35" VerticalContentAlignment="Center" FontSize="16" FontWeight="DemiBold" Width="100" BorderThickness="3" />
+
+            <TextBlock Text="Library" Grid.Column="1" Margin="0 5 0 5" FontWeight="Bold" FontSize="50" VerticalAlignment="Center" Grid.Row="0" TextAlignment="Center"/>
 
             <Button x:Name="AddButton" Grid.Column="2" Grid.Row="0" FontSize="70" Command="{Binding AddDocumentCommand}" HorizontalAlignment="Right" Margin="0 0 15 0" FontFamily="Global User Interface" Height="76" Width="76" BorderThickness="0" Style="{DynamicResource MetroCircleButtonStyle}">
 
@@ -40,7 +43,7 @@
 
             </Button>
 
-            <ListView x:Name="LibraryListView" Drop="LibraryListView_Drop" AllowDrop="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding Library}">
+            <ListView x:Name="LibraryListView" AllowDrop="True" dd:DragDrop.DropHandler="{Binding}" dd:DragDrop.IsDragSource="True" dd:DragDrop.IsDropTarget="True" dd:DragDrop.UseDefaultDragAdorner="True" SelectionMode="Single" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" SelectedValue="{Binding SelectedDocument}" Padding="5" ItemsSource="{Binding LibraryView}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>
@@ -77,6 +80,11 @@
 
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
+            <Button Command="{Binding OpenInfoCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconModern Kind="InformationCircle" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
             <Button Command="{Binding SwapThemeCommand}">
                 <StackPanel Orientation="Horizontal">
                     <iconPacks:PackIconModern Kind="Contrast" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>

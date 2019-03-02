@@ -28,20 +28,27 @@ using Google.Apis.Auth.OAuth2;
 using Grpc.Auth;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
+using GongSolutions.Wpf.DragDrop;
 
 namespace WordByWord.ViewModel
 {
-    public class ViewModel : ObservableObject
+    public class ViewModel : ObservableObject, IDropTarget
     {
-        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg" };
+        private readonly HashSet<string> _fileTypeWhitelist = new HashSet<string>(){ ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif", ".tiff", ".tif", ".webp" };
 
         private string _editorText = string.Empty;
-        private OcrDocument _selectedDocument;
+        private Document _selectedDocument;
         private readonly Stopwatch _stopWatch = new Stopwatch();
         private TimeSpan _elapsedTime;
         private readonly object _libraryLock = new object();
-        private ObservableCollection<OcrDocument> _library = new ObservableCollection<OcrDocument>();// filePaths, ocrtext
+        private ObservableCollection<string> _libraryExtensions = new ObservableCollection<string>() { "no filter" };
+        private ObservableCollection<Document> _library = new ObservableCollection<Document>();// filePaths, ocrtext
         private ContextMenu _addDocumentContext;
+        private string _selectedExtension = "no filter";
         private string _currentWord = string.Empty;
         private string _userInputTitle = string.Empty;
         private string _userInputBody = string.Empty;
@@ -83,20 +90,24 @@ namespace WordByWord.ViewModel
             _dialogService = dialogService;
             _windowService = windowService;
 
+            _windowService.OnWindowOpened += WindowService_OnWindowOpened;
+
             BindingOperations.EnableCollectionSynchronization(_library, _libraryLock);
 
             CreateAddDocumentContextMenu();
 
+            // Relay Commands
             GoBackToLibrary = new RelayCommand(() =>
             {
-                _windowService.CloseWindow("Reader");
-                _windowService.ShowWindow("Library", this);
+                _windowService.CloseWindow(Windows.Reader);
+                _windowService.ShowWindow(Windows.Library, this);
             });
 
             RemoveDocumentCommand = new RelayCommand(RemoveDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             RenameDocumentCommand = new RelayCommand(RenameDocument, () => SelectedDocument != null && !SelectedDocument.IsBusy);
             AddDocumentCommand = new RelayCommand(AddDocumentContext);
             OpenEditorCommand = new RelayCommand(OpenEditorWindow, () => SelectedDocument != null && !SelectedDocument.IsBusy);
+            OpenInfoCommand = new RelayCommand(OpenInfoWindow);
             ConfirmEditCommand = new RelayCommand(ConfirmEdit);
             ReadSelectedDocumentCommand = new RelayCommand(async () =>
             {
@@ -170,6 +181,16 @@ namespace WordByWord.ViewModel
             LoadLibrary();
         }
 
+        private void WindowService_OnWindowOpened(object sender, Windows e)
+        {
+            switch(e)
+            {
+                case Windows.Reader:
+                    CacheWordAndSentenceGrouping();
+                    break;
+            }
+        }
+
         #region Properties
 
         public RelayCommand GoBackToLibrary { get; }
@@ -187,6 +208,8 @@ namespace WordByWord.ViewModel
         public RelayCommand ConfirmEditCommand { get; }
 
         public RelayCommand OpenEditorCommand { get; }
+
+        public RelayCommand OpenInfoCommand { get; }
 
         public RelayCommand AddDocumentCommand { get; }
 
@@ -302,14 +325,50 @@ namespace WordByWord.ViewModel
             get => _currentWord;
             set { Set(() => CurrentWord, ref _currentWord, value); }
         }
-
-        public ObservableCollection<OcrDocument> Library
+       
+        public ICollectionView LibraryView
         {
-            get => _library;
-            set { Set(() => Library, ref _library, value); }
+            get
+            {
+                var source = CollectionViewSource.GetDefaultView(Library);
+
+                source.Filter = doc =>
+                {
+                    if (SelectedExtension == "no filter")
+                        return true;
+
+                    Document document = doc as Document;
+
+                    string docExtension = string.IsNullOrEmpty(System.IO.Path.GetExtension(document.FilePath))
+                    ? "manual" : System.IO.Path.GetExtension(document.FilePath).ToLower();
+
+                    return document != null && docExtension == SelectedExtension;
+                };
+
+                return source;
+            }
         }
 
-        public OcrDocument SelectedDocument
+        public ObservableCollection<Document> Library
+        {
+            get => _library;
+            set
+            {
+                if (Set(() => Library, ref _library, value))
+                {
+                    _library.CollectionChanged += Library_CollectionChanged;
+                    AddFilterExtensions(_library.Select(file => file.FilePath));
+                }
+            }
+        }
+
+        public ObservableCollection<string> LibraryExtensions
+        {
+            get => _libraryExtensions;
+            set => Set(() => LibraryExtensions, ref _libraryExtensions, value);
+        }
+
+        public Document SelectedDocument
         {
             get => _selectedDocument;
             set
@@ -325,6 +384,18 @@ namespace WordByWord.ViewModel
                 RemoveDocumentCommand.RaiseCanExecuteChanged();
                 OpenEditorCommand.RaiseCanExecuteChanged();
                 RenameDocumentCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string SelectedExtension
+        {
+            get => _selectedExtension;
+            set
+            {
+                if (Set(() => SelectedExtension, ref _selectedExtension, value))
+                {
+                    LibraryView.Refresh();
+                }
             }
         }
 
@@ -412,15 +483,16 @@ namespace WordByWord.ViewModel
 
         private void InputText_Click(object sender, RoutedEventArgs e)
         {
-            _windowService.ShowWindow("InputText", this);
+            _windowService.ShowWindow(Windows.InputText, this);
         }
 
-        private void UploadImage_Click(object sender, RoutedEventArgs e)
+        private void ImportDocument_Click(object sender, RoutedEventArgs e)
         {
+            //Todo create dialog service
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = true,
-                Filter = "Image files (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg",
+                Filter = "Documents/Images (*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif;*.tiff;*.tif;*.webp)|*.png;*.jpeg;*.jpg;*.pdf;*.ico;*.raw;*.bmp;*.gif;*.tiff;*.tif;*.webp",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
@@ -430,9 +502,63 @@ namespace WordByWord.ViewModel
             }
         }
 
+        private void Library_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    Document newDoc = (Document)e.NewItems[0];
+                    AddFilterExtensions(new string[] { newDoc.FilePath });
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    if (LibraryView.IsEmpty)
+                    {
+                        Document oldDoc = (Document)e.OldItems[0];
+                        RemoveFilterExtensions(new string[] { oldDoc.FilePath });
+                        SelectedExtension = "no filter";
+                    }
+                    break;
+            }
+
+            SaveLibrary();
+        }
+        
         #endregion
 
         #region Methods
+        
+        private void AddFilterExtensions(IEnumerable<string> filepaths)
+        {
+            foreach (string path in filepaths)
+            {
+                string extension = string.IsNullOrEmpty(System.IO.Path.GetExtension(path)) ? 
+                    "manual" : System.IO.Path.GetExtension(path).ToLower();
+
+                if (!LibraryExtensions.Contains(extension))
+                {
+                    LibraryExtensions.Add(extension);
+                }
+            }
+        }
+
+        private void RemoveFilterExtensions(IEnumerable<string> filepaths)
+        {
+            /* 
+             * This method takes in a string array in the event we decide we want to give the user 
+             * the ability to remove multiple items from the library in the future.
+             */
+            foreach (string path in filepaths)
+            {
+                string extension = string.IsNullOrEmpty(System.IO.Path.GetExtension(path)) ?
+                    "manual" : System.IO.Path.GetExtension(path).ToLower();
+
+                if (LibraryExtensions.Contains(extension))
+                {
+                    LibraryExtensions.Remove(extension);
+                }
+            }
+        }
 
         private bool IsEachFileSupported(string[] fileNames)
         {
@@ -440,7 +566,7 @@ namespace WordByWord.ViewModel
 
             foreach(string fileName in fileNames)
             {
-                eachFileIsSupported = _fileTypeWhitelist.Contains(Path.GetExtension(fileName).ToLower());
+                eachFileIsSupported = _fileTypeWhitelist.Contains(System.IO.Path.GetExtension(fileName).ToLower());
 
                 if (!eachFileIsSupported) break;
             }
@@ -448,37 +574,63 @@ namespace WordByWord.ViewModel
             return eachFileIsSupported;
         }
 
-        public async void ImportFilesToLibrary(string[] fileNames)
+        public async void ImportFilesToLibrary(string[] fileNames, int? insertIndex = null)
         {
-            if (fileNames.Length < 25 && IsEachFileSupported(fileNames))
+            // It's just a reordering
+            if (fileNames == null)
+                return;
+
+            if (!IsEachFileSupported(fileNames))
+            {
+                _dialogService.ShowModalMessageExternal(this, "Invalid file(s)",
+                   $"Please import only valid file types.\n({string.Join(", ", _fileTypeWhitelist)})");
+                return;
+            }
+
+            if (fileNames.Length < 25)
             {
                 IsBusy = true;
                 List<string> filePaths = new List<string>();
                 foreach (string filePath in fileNames)
                 {
+                    // TODO: Maybe notify the user when they're trying to import an already existing doc?
                     if (Library.All(doc => doc.FilePath != filePath))
                     {
-                        System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
-                        Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
+                        Document newDocument = new Document(filePath) { Thumbnail = null, ThumbnailPath = null };
 
-                        string thumbnailPath = $"{SerializedDataFolderPath}{Path.GetFileName(filePath)}";
-                        imageToBitmap.Save(thumbnailPath);
+                        try
+                        {
+                            System.Drawing.Image originalImage = System.Drawing.Image.FromFile(filePath);
+                            Bitmap imageToBitmap = ResizeImage(originalImage, 50, 50);
 
-                        BitmapImage thumbnail = new BitmapImage();
-                        thumbnail.BeginInit();
-                        thumbnail.CacheOption = BitmapCacheOption.OnLoad;
-                        thumbnail.UriSource = new Uri(thumbnailPath);
-                        thumbnail.EndInit();
+                            string thumbnailPath = $"{SerializedDataFolderPath}{System.IO.Path.GetFileName(filePath)}";
+                            imageToBitmap.Save(thumbnailPath);
 
-                        OcrDocument ocrDoc = new OcrDocument(filePath) { Thumbnail = thumbnail, ThumbnailPath = thumbnailPath };
-                        Library.Add(ocrDoc);
+                            BitmapImage thumbnail = new BitmapImage();
+                            thumbnail.BeginInit();
+                            thumbnail.CacheOption = BitmapCacheOption.OnLoad;
+                            thumbnail.UriSource = new Uri(thumbnailPath);
+                            thumbnail.EndInit();
+
+                            newDocument.Thumbnail = thumbnail;
+                            newDocument.ThumbnailPath = thumbnailPath;
+                        }
+                        catch (OutOfMemoryException e)
+                        {
+                            Logger.LogError("File does not contain a valid image.\nStock image will be used instead (Check mark).", e.Message);
+                        }
+
+                        int index = insertIndex ?? Library.Count;
+
+                        Library.Insert(index, newDocument);
+                        SelectedDocument = Library[index];
                         filePaths.Add(filePath);
                     }
                 }
 
                 if (filePaths.Count > 0)
                 {
-                    await RunOcrOnFiles(filePaths);
+                    await ImportMultipleDocuments(filePaths);
                 }
                 IsBusy = false;
             }
@@ -488,6 +640,40 @@ namespace WordByWord.ViewModel
                 _dialogService.ShowModalMessageExternal(this, "Too many files",
                     "You tried importing more than 25 files at once.\nPlease try again.");
             }
+        }
+
+        private async Task ImportMultipleDocuments(List<string> filePaths)
+        {
+            await Task.Run(() =>
+            {
+                foreach (string filePath in filePaths)
+                {
+                    string result = string.Empty;
+
+                    //Todo turn this into a file reading service?
+                    switch (System.IO.Path.GetExtension(filePath).ToLower())
+                    {
+                        case ".pdf":
+                            result = GetTextFromPdf(filePath);
+                            break;
+                        case ".png":
+                        case ".jpeg":
+                        case ".jpg":
+                        case ".ico":
+                        case ".raw":
+                        case ".bmp":
+                        case ".gif":
+                        case ".tiff":
+                        case ".tif":
+                        case ".webp":
+                            result = GetTextFromImage(filePath);
+                            break;
+                    }
+
+                    Library.Single(doc => doc.FilePath == filePath).Text = result;
+                    SaveLibrary();
+                }
+            });
         }
 
         private void InstantiateCloudVisionClient()
@@ -743,7 +929,7 @@ namespace WordByWord.ViewModel
                 string serializedLibraryFile = Directory.GetFiles(SerializedDataFolderPath).Single(filePath => filePath.EndsWith("library.json"));
                 if (!string.IsNullOrEmpty(serializedLibraryFile))
                 {
-                    Library = JsonConvert.DeserializeObject<ObservableCollection<OcrDocument>>(
+                    Library = JsonConvert.DeserializeObject<ObservableCollection<Document>>(
                         File.ReadAllText(serializedLibraryFile));
                 }
             }
@@ -757,19 +943,19 @@ namespace WordByWord.ViewModel
             {
                 if (Library.All(doc => doc.FileName != UserInputTitle))
                 {
-                    OcrDocument newDoc = new OcrDocument(UserInputTitle) //All OcrDocuments must be created with a filePath!
+                    Document newDoc = new Document(UserInputTitle) //All Documents must be created with a filePath!
                     {
-                        OcrText = UserInputBody
+                        Text = UserInputBody
                     };
 
                     Library.Add(newDoc);
 
+                    SelectedDocument = newDoc;
+
                     UserInputTitle = string.Empty;
                     UserInputBody = string.Empty;
 
-                    _windowService.CloseWindow("InputText");
-
-                    SaveLibrary();
+                    _windowService.CloseWindow(Windows.InputText);
                 }
                 else
                 {
@@ -801,7 +987,6 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                _wordsToRead = await SplitIntoGroups();
                 StartStopWatch();
                 for (int wordIndex = _resumeReading ? CurrentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
@@ -827,8 +1012,6 @@ namespace WordByWord.ViewModel
         {
             if (SelectedDocument != null)
             {
-                // Split on regex to preserve chars we split on.
-                _sentencesToRead = await SplitIntoSentences();
                 StartStopWatch();
                 for (int sentenceIndex = _resumeReading ? CurrentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
@@ -863,12 +1046,14 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string text = SelectedDocument.OcrText;
+            string text = SelectedDocument.Text;
             int numberOfSentences = NumberOfSentences;
 
             await Task.Run(() =>
             {
-                string[] sentences = Regex.Split(text.Replace("\r\n", " ").Replace("...", "…"), "(?<!(?:Mr|Mr.|Dr|Ms|St|a|p|m|K)\\.)(?<=[\".\u2026!;\\?])\\s+", RegexOptions.IgnoreCase).ToArray();
+                string pattern = @"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s" + "|(?<=\\.\")\\s";
+
+                string[] sentences = Regex.Split(text, pattern, RegexOptions.None).ToArray();
 
                 for (int i = 0; i < sentences.Length; i += numberOfSentences)
                 {
@@ -884,7 +1069,7 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string sentence = SelectedDocument.OcrText;
+            string sentence = SelectedDocument.Text;
             int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
@@ -901,54 +1086,57 @@ namespace WordByWord.ViewModel
             return groups;
         }
 
-        private async Task RunOcrOnFiles(List<string> filePaths)
-        {
-            await Task.Run(() =>
-            {
-                foreach (string filePath in filePaths)
-                {
-                    string ocrResult = GetTextFromImage(filePath);
-                    Library.Single(doc => doc.FilePath == filePath).OcrText = ocrResult;
-                    SaveLibrary();
-                }
-            });
-        }
-
         private void ConfirmEdit()
         {
-            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).OcrText = EditorText;
+            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
 
-            _windowService.CloseWindow("Editor");
+            _windowService.CloseWindow(Windows.Editor);
 
             SaveLibrary();
+
+            if(_windowService.IsWindowOpen(Windows.Reader))//And user did change something
+            {
+                CacheWordAndSentenceGrouping();
+            }
+        }
+
+        private async void CacheWordAndSentenceGrouping()
+        {
+            //Todo add loading spinner in case the file is huge
+            _wordsToRead = await SplitIntoGroups();
+            _sentencesToRead = await SplitIntoSentences();
         }
 
         private void RemoveDocument()
         {
-            OcrDocument docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
+            Document docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
             Library.Remove(docToRemove);
             if (File.Exists(docToRemove.ThumbnailPath))
             {
                 File.SetAttributes(docToRemove.ThumbnailPath, FileAttributes.Normal);
                 File.Delete(docToRemove.ThumbnailPath);
             }
-            SaveLibrary();
         }
 
         internal void OpenReaderWindow()
         {
-            _windowService.CloseWindow("Library");
-            _windowService.ShowWindow("Reader", this);
+            _windowService.CloseWindow(Windows.Library);
+            _windowService.ShowWindow(Windows.Reader, this);
         }
 
         internal void OpenLibraryWindow()
         {
-            _windowService.ShowWindow("Library", this);
+            _windowService.ShowWindow(Windows.Library, this);
         }
 
         private void OpenEditorWindow()
         {
-            _windowService.ShowWindow("Editor", this);
+            _windowService.ShowWindow(Windows.Editor, this);
+        }
+
+        private void OpenInfoWindow()
+        {
+            _windowService.ShowWindow(Windows.Info, this);
         }
 
         private void AddDocumentContext()
@@ -974,11 +1162,11 @@ namespace WordByWord.ViewModel
             };
             MenuItem uploadImage = new MenuItem
             {
-                Header = "Upload image(s)...",
+                Header = "Import document(s)...",
             };
 
             inputText.Click += InputText_Click;
-            uploadImage.Click += UploadImage_Click;
+            uploadImage.Click += ImportDocument_Click;
 
             _addDocumentContext.Items.Add(inputText);
             _addDocumentContext.Items.Add(uploadImage);
@@ -992,13 +1180,75 @@ namespace WordByWord.ViewModel
             string result = "No text found!";
 
             var image = Google.Cloud.Vision.V1.Image.FromFile(filePath);
-            var response = _cloudVisionClient.DetectText(image);
+            IReadOnlyList<EntityAnnotation> response = new List<EntityAnnotation>();
+
+            try
+            {
+                response = _cloudVisionClient.DetectText(image);
+            }
+            catch(AnnotateImageException e)
+            {
+                //Todo Warn user?
+                Logger.LogError("The file you are trying to import is corrupt and can not be properly read.", e.Message);
+            }
 
             if (response.Any())
             {
                 result = response[0].Description ?? "No text found!";
             }
             return result;
+        }
+
+        public string GetTextFromPdf(string filePath)
+        {
+            PdfReader reader = new PdfReader(filePath);
+            //Todo limit the number of pages so that the user can't upload a 500 page pdf.
+            int numberOfPages = reader.NumberOfPages;
+            string allPdfText = string.Empty;
+
+            for (int currentPage = 1; currentPage <= numberOfPages; currentPage++)
+            {
+                allPdfText += PdfTextExtractor.GetTextFromPage(reader, currentPage, new LocationTextExtractionStrategy());
+            }
+            return allPdfText;
+        }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+
+            var dataObject = dropInfo.Data as IDataObject;
+
+            if (dataObject != null && dataObject.GetDataPresent(DataFormats.FileDrop))
+            {
+                dropInfo.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                dropInfo.Effects = DragDropEffects.Move;
+            }
+        }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            var dataObject = dropInfo.Data as DataObject;
+
+            if (dataObject != null && dataObject.ContainsFileDropList())
+            {
+                // External drop
+                string[] files = new string[dataObject.GetFileDropList().Count];
+                dataObject.GetFileDropList().CopyTo(files, 0);
+
+                ImportFilesToLibrary(files, dropInfo.InsertIndex);
+            }
+            else
+            {
+                // Internal reordering
+                GongSolutions.Wpf.DragDrop.DragDrop.DefaultDropHandler.Drop(dropInfo);
+                Document doc = dropInfo.Data as Document;
+
+                SelectedDocument = doc;
+            }
         }
 
         #endregion

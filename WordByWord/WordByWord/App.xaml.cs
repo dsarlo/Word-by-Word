@@ -30,7 +30,7 @@ namespace WordByWord
             try
             {
                 ServiceLocator.Current.GetInstance<IWindowService>()
-                .ShowWindow("Library", null);
+                .ShowWindow(Services.Windows.Library, null);
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 ﻿using CommonServiceLocator;
 using GalaSoft.MvvmLight.Ioc;
 using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,24 +15,31 @@ namespace WordByWord.Test
     {
         private static ViewModel.ViewModel _viewModel;
 
-        [ClassInitialize]
-        public static void TestSetup(TestContext testContext)
+        [TestInitialize]
+        public void Setup()
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
             SimpleIoc.Default.Register<IWindowService, WindowService>();
             SimpleIoc.Default.Register<IDialogCoordinator, DialogCoordinator>();
+            SimpleIoc.Default.Register<ILoggerFactory>(() => new LoggerFactory());
             SimpleIoc.Default.Register<ViewModel.ViewModel>();
 
             _viewModel = ServiceLocator.Current.GetInstance<ViewModel.ViewModel>();
         }
 
+        [TestCleanup]
+        public void Teardown()
+        {
+            SimpleIoc.Default.Reset();
+        }
+
         [TestMethod]
         public async Task SplitIntoGroups()
         {
-            OcrDocument testDocument = new OcrDocument("test")
+            Document testDocument = new Document("test")
             {
-                OcrText = "I solemnly swear\r\nI am up to no good."
+                Text = "I solemnly swear\r\nI am up to no good."
             };
             _viewModel.SelectedDocument = testDocument;
 
@@ -75,41 +83,57 @@ namespace WordByWord.Test
         public async Task SplitIntoSentences()
         {
             string testingString = "Did you ever hear the tragedy of Darth Plagueis the Wise? " +
-                "\r\nI thought not. It's not a story the Jedi would tell you. It's a Sith legend. " +
-                "\r\nDarth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life...";
+                "I thought not. It's not a story the Jedi would tell you. It's a Sith legend. " +
+                "Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life...";
 
-            OcrDocument testDocument = new OcrDocument("test")
+            string testingStringQuotes = "\"I'm going to make him an offer he cannot refuse.\" He said.";
+
+            Document testDocument = new Document("test")
             {
-                OcrText = testingString
+                Text = testingString
             };
+
+            Document testDocumentQuotes = new Document("testQuotes")
+            {
+                Text = testingStringQuotes
+            };
+
             _viewModel.SelectedDocument = testDocument;
             
             // 1 Sentence at a time
             _viewModel.NumberOfSentences = 1;
             string[] expected1 = { "Did you ever hear the tragedy of Darth Plagueis the Wise?", "I thought not.",
                 "It's not a story the Jedi would tell you.", "It's a Sith legend.", "Darth Plagueis was a Dark " +
-                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life..." };
             List<string> result1 = await _viewModel.SplitIntoSentences();
 
-            CollectionAssert.AreEqual(expected1, result1);
+            CollectionAssert.AreEqual(expected1, result1, "Failed to split into one sentence.");
 
             // 2 Sentences at a time
             _viewModel.NumberOfSentences = 2;
             string[] expected2 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not.",
                 "It's not a story the Jedi would tell you. It's a Sith legend.", "Darth Plagueis was a Dark " +
-                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+                "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life..." };
             List<string> result2 = await _viewModel.SplitIntoSentences();
 
-            CollectionAssert.AreEqual(expected2, result2);
+            CollectionAssert.AreEqual(expected2, result2, "Failed to split into two sentences.");
 
             // 3 Sentences at a time
             _viewModel.NumberOfSentences = 3;
             string[] expected3 = { "Did you ever hear the tragedy of Darth Plagueis the Wise? I thought not. " +
                     "It's not a story the Jedi would tell you.", "It's a Sith legend. Darth Plagueis was a Dark " +
-                    "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life…" };
+                    "Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life..." };
             List<string> result3 = await _viewModel.SplitIntoSentences();
 
-            CollectionAssert.AreEqual(expected3, result3);
+            CollectionAssert.AreEqual(expected3, result3, "Failed to split into three sentences.");
+
+            // Sentence with a quote and period
+            _viewModel.SelectedDocument = testDocumentQuotes;
+            _viewModel.NumberOfSentences = 1;
+            string[] expected4 = { "\"I'm going to make him an offer he cannot refuse.\"", "He said." };
+            List<string> result4 = await _viewModel.SplitIntoSentences();
+
+            CollectionAssert.AreEqual(expected4, result4, "Failed to split sentence with quotes.");
         }
 
         [TestMethod]
