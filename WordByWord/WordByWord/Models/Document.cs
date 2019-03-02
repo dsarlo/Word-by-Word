@@ -16,6 +16,8 @@ namespace WordByWord.Models
         private bool _isEditingFileName;
         private string _thumbnailPath;
         private BitmapSource _thumbnail;
+        private int _currentWordIndex;
+        private int _currentSentenceIndex;
 
         public Document(string filePath)
         {
@@ -30,6 +32,18 @@ namespace WordByWord.Models
             get => _fileName;
             set { Set(() => FileName, ref _fileName, value); }
         }
+
+        public int CurrentWordIndex
+        {
+            get => _currentWordIndex;
+            set { Set(() => CurrentWordIndex, ref _currentWordIndex, value); }
+        }
+
+        public int CurrentSentenceIndex
+        {
+            get => _currentSentenceIndex;
+            set { Set(() => CurrentSentenceIndex, ref _currentSentenceIndex, value); }
+        } 
 
         public string Text
         {

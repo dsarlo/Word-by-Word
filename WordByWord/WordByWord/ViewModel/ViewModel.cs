@@ -117,7 +117,17 @@ namespace WordByWord.ViewModel
 
                     try
                     {
+                        CurrentSentenceIndex = SelectedDocument.CurrentSentenceIndex;
+                        CurrentWordIndex = SelectedDocument.CurrentWordIndex;
+
+                        _resumeReading = SelectedDocument.CurrentSentenceIndex != 0 ||
+                                         SelectedDocument.CurrentWordIndex != 0;
+
                         await ReadSelectedDocument(ctoken);
+
+                        //Resets the document reading
+                        SelectedDocument.CurrentWordIndex = 0;
+                        SelectedDocument.CurrentSentenceIndex = 0;
                     }
                     catch(TaskCanceledException e)//Reader has been paused
                     {
@@ -146,11 +156,33 @@ namespace WordByWord.ViewModel
                 {
                     ElapsedTime = _stopWatch.Elapsed;
                     DisplayTime = true;
+
+                    //Resets the document reading
+                    SelectedDocument.CurrentWordIndex = 0;
+                    SelectedDocument.CurrentSentenceIndex = 0;
+                }
+                else
+                {
+                    if (SentenceReadingEnabled)
+                    {
+                        SelectedDocument.CurrentSentenceIndex = CurrentSentenceIndex;
+                    }
+                    else
+                    {
+                        SelectedDocument.CurrentWordIndex = CurrentWordIndex;
+                    }
                 }
                 _stopWatch.Stop();
+
+                SaveLibrary();
             });
 
-            ResetCommand = new RelayCommand(StopCurrentDocument);
+            ResetCommand = new RelayCommand(() =>
+            {
+                CurrentWordIndex = 0;
+                CurrentSentenceIndex = 0;
+                StopCurrentDocument();
+            });
             StepBackwardCommand = new RelayCommand(StepBackward);
             StepForwardCommand = new RelayCommand(StepForward);
             SwapThemeCommand = new RelayCommand(SwapTheme);
@@ -431,6 +463,26 @@ namespace WordByWord.ViewModel
                 Set(() => IsDarkMode, ref _isDarkMode, value);
                 Properties.Settings.Default.DarkMode = value;
                 Properties.Settings.Default.Save();
+            }
+        }
+
+        public int CurrentWordIndex
+        {
+            get => _currentWordIndex;
+            set
+            {
+                Set(() => CurrentWordIndex, ref _currentWordIndex, value);
+                SelectedDocument.CurrentWordIndex = value;
+            }
+        }
+
+        public int CurrentSentenceIndex
+        {
+            get => _currentSentenceIndex;
+            set
+            {
+                Set(() => CurrentSentenceIndex, ref _currentSentenceIndex, value);
+                SelectedDocument.CurrentSentenceIndex = value;
             }
         }
 
@@ -717,14 +769,14 @@ namespace WordByWord.ViewModel
 
         public bool CheckIfAtEnd()
         {
-            return (SentenceReadingEnabled && _currentSentenceIndex == _sentencesToRead?.Count - 1)
-              || (!SentenceReadingEnabled && _currentWordIndex == _wordsToRead?.Count - 1);
+            return (SentenceReadingEnabled && CurrentSentenceIndex == _sentencesToRead?.Count - 1)
+              || (!SentenceReadingEnabled && CurrentWordIndex == _wordsToRead?.Count - 1);
         }
 
         public bool CheckIfAtBeginning()
         {
-            return (SentenceReadingEnabled && _currentSentenceIndex == 0)
-              || (!SentenceReadingEnabled && _currentWordIndex == 0);
+            return (SentenceReadingEnabled && CurrentSentenceIndex == 0)
+              || (!SentenceReadingEnabled && CurrentWordIndex == 0);
         }
 
         public async Task DefineWordAsync()
@@ -796,17 +848,17 @@ namespace WordByWord.ViewModel
 
             if (!SentenceReadingEnabled)
             {
-                if (_currentWordIndex != 0)
+                if (CurrentWordIndex != 0)
                 {
-                    CurrentWord = _wordsToRead[--_currentWordIndex];
+                    CurrentWord = _wordsToRead[--CurrentWordIndex];
                     _resumeReading = true;
                 }
             }
             else
             {
-                if (_currentSentenceIndex != 0)
+                if (CurrentSentenceIndex != 0)
                 {
-                    CurrentWord = _sentencesToRead[--_currentSentenceIndex];
+                    CurrentWord = _sentencesToRead[--CurrentSentenceIndex];
                     _resumeReading = true;
                 }
             }
@@ -821,17 +873,17 @@ namespace WordByWord.ViewModel
 
             if (!SentenceReadingEnabled)
             {
-                if (_currentWordIndex != _wordsToRead.Count - 1)
+                if (CurrentWordIndex != _wordsToRead.Count - 1)
                 {
-                    CurrentWord = _wordsToRead[++_currentWordIndex];
+                    CurrentWord = _wordsToRead[++CurrentWordIndex];
                     _resumeReading = true;
                 }
             }
             else
             {
-                if (_currentSentenceIndex != _sentencesToRead.Count - 1)
+                if (CurrentSentenceIndex != _sentencesToRead.Count - 1)
                 {
-                    CurrentWord = _sentencesToRead[++_currentSentenceIndex];
+                    CurrentWord = _sentencesToRead[++CurrentSentenceIndex];
                     _resumeReading = true;
                 }
             }
@@ -860,7 +912,6 @@ namespace WordByWord.ViewModel
             _cSource.Dispose();
             _cSource = new CancellationTokenSource();
             _resumeReading = false;
-            _currentWordIndex = 0;
             _stopWatch.Reset();
             CurrentWord = string.Empty;
             DisplayTime = false;
@@ -946,9 +997,9 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 StartStopWatch();
-                for (int wordIndex = _resumeReading ? _currentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
+                for (int wordIndex = _resumeReading ? CurrentWordIndex : 0; wordIndex < _wordsToRead.Count; wordIndex++)
                 {
-                    _currentWordIndex = wordIndex;
+                    CurrentWordIndex = wordIndex;
                     string word = _wordsToRead[wordIndex];
                     if (!string.IsNullOrWhiteSpace(word))
                     {
@@ -971,9 +1022,9 @@ namespace WordByWord.ViewModel
             if (SelectedDocument != null)
             {
                 StartStopWatch();
-                for (int sentenceIndex = _resumeReading ? _currentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
+                for (int sentenceIndex = _resumeReading ? CurrentSentenceIndex : 0; sentenceIndex < _sentencesToRead.Count; sentenceIndex++)
                 {
-                    _currentSentenceIndex = sentenceIndex;
+                    CurrentSentenceIndex = sentenceIndex;
                     string sentence = _sentencesToRead[sentenceIndex];
                     if (!string.IsNullOrWhiteSpace(sentence))
                     {
@@ -1027,12 +1078,12 @@ namespace WordByWord.ViewModel
         {
             List<string> groups = new List<string>();
 
-            string sentence = SelectedDocument.Text;
+            string docText = SelectedDocument.Text;
             int numberOfWords = NumberOfGroups;
 
             await Task.Run(() =>
             {
-                string[] words = sentence.Replace("\r\n", " ").Split();
+                string[] words = docText.Split(new char[]{' ', '\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
 
                 for (int i = 0; i < words.Length; i += numberOfWords)
                 {
@@ -1046,7 +1097,13 @@ namespace WordByWord.ViewModel
 
         private void ConfirmEdit()
         {
-            Library.Single(doc => doc.FilePath == SelectedDocument.FilePath).Text = EditorText;
+            SelectedDocument.Text = EditorText;
+
+            _resumeReading = false;
+            _currentWordIndex = 0;
+            _currentSentenceIndex = 0;
+            SelectedDocument.CurrentSentenceIndex = 0;
+            SelectedDocument.CurrentWordIndex = 0;
 
             _windowService.CloseWindow(Windows.Editor);
 
@@ -1067,13 +1124,12 @@ namespace WordByWord.ViewModel
 
         private void RemoveDocument()
         {
-            Document docToRemove = Library.Single(doc => doc.FilePath == SelectedDocument.FilePath);
-            Library.Remove(docToRemove);
-            if (File.Exists(docToRemove.ThumbnailPath))
+            if (File.Exists(SelectedDocument.ThumbnailPath))
             {
-                File.SetAttributes(docToRemove.ThumbnailPath, FileAttributes.Normal);
-                File.Delete(docToRemove.ThumbnailPath);
+                File.SetAttributes(SelectedDocument.ThumbnailPath, FileAttributes.Normal);
+                File.Delete(SelectedDocument.ThumbnailPath);
             }
+            Library.Remove(SelectedDocument);
         }
 
         internal void OpenReaderWindow()
