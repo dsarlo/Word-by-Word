@@ -1009,7 +1009,7 @@ namespace WordByWord.ViewModel
 
             await Task.Run(() =>
             {
-                string pattern = @"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s" + "|(?<=\\.\")\\s";
+                string pattern = @"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|\!)\s" + "|(?<=\\.\")\\s";
 
                 string[] sentences = Regex.Split(text, pattern, RegexOptions.None).ToArray();
 
