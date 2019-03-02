@@ -37,7 +37,7 @@ namespace WordByWord.ViewModel
 {
     public class ViewModel : ObservableObject
     {
-        private readonly string[] _fileTypeWhitelist = { ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif", ".tiff", ".tif", ".webp" };
+        private readonly HashSet<string> _fileTypeWhitelist = new HashSet<string>(){ ".png", ".jpeg", ".jpg", ".pdf", ".ico", ".raw", ".bmp", ".gif", ".tiff", ".tif", ".webp" };
 
         private string _editorText = string.Empty;
         private Document _selectedDocument;
@@ -476,6 +476,8 @@ namespace WordByWord.ViewModel
                     }
                     break;
             }
+
+            SaveLibrary();
         }
         
         #endregion
@@ -530,7 +532,18 @@ namespace WordByWord.ViewModel
 
         public async void ImportFilesToLibrary(string[] fileNames)
         {
-            if (fileNames.Length < 25 && IsEachFileSupported(fileNames))
+            // It's just a reordering
+            if (fileNames == null)
+                return;
+
+            if (!IsEachFileSupported(fileNames))
+            {
+                _dialogService.ShowModalMessageExternal(this, "Invalid files",
+                    "Please import only valid file types.");
+                return;
+            }
+
+            if (fileNames.Length < 25)
             {
                 IsBusy = true;
                 List<string> filePaths = new List<string>();

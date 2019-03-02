@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using CommonServiceLocator;
 using MahApps.Metro.Controls;
+using WordByWord.Models;
 
 namespace WordByWord
 {
